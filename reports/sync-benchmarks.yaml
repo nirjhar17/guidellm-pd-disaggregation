@@ -1,0 +1,4408 @@
+metadata:
+  version: 1
+  guidellm_version: "0.5.0"
+  python_version: "3.13.9"
+  platform: "Linux-5.14.0-570.68.1.el9_6.x86_64-x86_64-with-glibc2.41"
+args:
+  target: "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws...."
+  data: [{"prompt_tokens":256,"output_tokens":128}]
+  profile: "synchronous"
+  rate: null
+  backend: "openai_http"
+  backend_kwargs: null
+  model: "Qwen/Qwen3-0.6B"
+  processor: null
+  processor_args: null
+  data_args: []
+  data_samples: -1
+  data_column_mapper: "generative_column_mapper"
+  data_request_formatter: "chat_completions"
+  data_collator: "generative"
+  data_sampler: null
+  data_num_workers: 1
+  dataloader_kwargs: null
+  random_seed: 42
+  outputs: [sync-benchmarks.json, sync-benchmarks.html]
+  output_dir: "/results"
+  sample_requests: 10
+  warmup: null
+  cooldown: null
+  rampup: 0.0
+  prefer_response_metrics: true
+  max_seconds: 60.0
+  max_requests: null
+  max_errors: null
+  max_error_rate: null
+  max_global_error_rate: null
+  over_saturation: null
+benchmarks:
+  - type_: "generative_benchmark"
+    config:
+      id_: "44598999-1717-4a66-8fbd-122db0e105a6"
+      run_id: "dda15525-a7da-4603-87e1-91028d13dc34"
+      run_index: 0
+      strategy:
+        type_: "synchronous"
+        worker_count: 1
+        max_concurrency: 1
+      constraints:
+        max_seconds:
+          type_: "max_duration"
+          max_duration: 60.0
+          current_index: 0
+      sample_requests: 10
+      warmup:
+        percent: null
+        value: null
+        mode: "prefer_duration"
+      cooldown:
+        percent: null
+        value: null
+        mode: "prefer_duration"
+      prefer_response_metrics: true
+      profile:
+        type_: "synchronous"
+        completed_strategies:
+          - type_: "synchronous"
+            worker_count: 1
+            max_concurrency: 1
+        constraints:
+          max_seconds: 60.0
+        rampup_duration: 0.0
+        strategy_types: [synchronous]
+      requests:
+        data: "['{"prompt_tokens":256,"output_tokens":128}']"
+        data_args: "[]"
+        data_samples: -1
+        preprocessors: [GenerativeColumnMapper, GenerativeChatCompletionsRequestFormatter]
+        collator: "GenerativeRequestCollator"
+        sampler: "None"
+        num_workers: 1
+        random_seed: 42
+      backend:
+        target: "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws...."
+        model: "Qwen/Qwen3-0.6B"
+        timeout: 60.0
+        http2: true
+        follow_redirects: true
+        verify: false
+        openai_paths:
+          health: "health"
+          models: "v1/models"
+          text_completions: "v1/completions"
+          chat_completions: "v1/chat/completions"
+          audio_transcriptions: "v1/audio/transcriptions"
+          audio_translations: "v1/audio/translations"
+        validate_backend:
+          method: "GET"
+          url: "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws...."
+      environment:
+        str: "<guidellm.scheduler.environments.NonDistributedEnvironment object at 0x7f93f527a..."
+        type: "NonDistributedEnvironment"
+        class: "NonDistributedEnvironment"
+        module: "guidellm.scheduler.environments"
+        attributes:
+          run_errors: []
+    scheduler_state:
+      node_id: 0
+      num_processes: 1
+      start_time: 1771372871.395729
+      end_time: 1771372933.7832506
+      end_queuing_time: 1771372933.7786915
+      end_queuing_constraints:
+        max_seconds:
+          request_queuing: "stop"
+          request_processing: "stop_local"
+          metadata:
+            max_duration: 60.0
+            elapsed_time: 62.38287544250488
+            duration_exceeded: true
+            start_time: 1771372871.395729
+            current_time: 1771372933.7786045
+            stop_time: 1771372931.395729
+          progress:
+            remaining_requests: null
+            total_requests: null
+            remaining_duration: 0.0
+            total_duration: 60.0
+            stop_time: 1771372931.395729
+      end_processing_time: 1771372933.7786996
+      end_processing_constraints:
+        max_seconds:
+          request_queuing: "stop"
+          request_processing: "stop_local"
+          metadata:
+            max_duration: 60.0
+            elapsed_time: 62.38287544250488
+            duration_exceeded: true
+            start_time: 1771372871.395729
+            current_time: 1771372933.7786045
+            stop_time: 1771372931.395729
+          progress:
+            remaining_requests: null
+            total_requests: null
+            remaining_duration: 0.0
+            total_duration: 60.0
+            stop_time: 1771372931.395729
+      scheduler_constraints:
+        max_seconds:
+          request_queuing: "stop"
+          request_processing: "stop_local"
+          metadata:
+            max_duration: 60.0
+            elapsed_time: 62.38753128051758
+            duration_exceeded: true
+            start_time: 1771372871.395729
+            current_time: 1771372933.7832603
+            stop_time: 1771372931.395729
+          progress:
+            remaining_requests: null
+            total_requests: null
+            remaining_duration: 0.0
+            total_duration: 60.0
+            stop_time: 1771372931.395729
+      progress:
+        remaining_requests: null
+        total_requests: null
+        remaining_duration: 0.0
+        total_duration: 60.0
+        stop_time: 1771372931.395729
+      created_requests: 27
+      queued_requests: 0
+      pending_requests: 0
+      processing_requests: 0
+      processed_requests: 27
+      successful_requests: 22
+      errored_requests: 0
+      cancelled_requests: 5
+    scheduler_metrics:
+      start_time: 1771372871.395729
+      request_start_time: 1771372871.395729
+      measure_start_time: 1771372871.395729
+      measure_end_time: 1771372931.395729
+      request_end_time: 1771372931.395729
+      end_time: 1771372933.7832506
+      requests_made:
+        successful: 22
+        errored: 0
+        incomplete: 2
+        total: 24
+      queued_time_avg: 10.314225684041562
+      resolve_start_delay_avg: 5.113560220469599e-05
+      resolve_targeted_start_delay_avg: 32.244694730509885
+      request_start_delay_avg: 2.9169994851817254e-05
+      request_targeted_start_delay_avg: 32.24472390050473
+      request_time_avg: 2.834948951547796
+      resolve_end_delay_avg: 0.00020132281563498756
+      resolve_time_avg: 2.7120321315267812
+      finalized_delay_avg: 0.0013797075852103856
+      processed_delay_avg: 0.0005652282548987347
+    metrics:
+      request_totals:
+        successful: 22
+        errored: 0
+        incomplete: 0
+        total: 22
+      requests_per_second:
+        successful:
+          mean: 0.35
+          median: 0.365069537921091
+          mode: 0.2992774906124012
+          variance: 0.006853662717060564
+          std_dev: 0.08278685111212145
+          min: 0.0
+          max: 0.6608536557888963
+          count: 21
+          total_sum: 7.35
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.2992774906124012
+            p10: 0.30194214490804716
+            p25: 0.35797833543091956
+            p50: 0.365069537921091
+            p75: 0.36767612483075984
+            p90: 0.3731816609010394
+            p95: 0.3778218608062462
+            p99: 0.6608536557888963
+            p999: 0.6608536557888963
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 0.35
+          median: 0.365069537921091
+          mode: 0.2992774906124012
+          variance: 0.006853662717060564
+          std_dev: 0.08278685111212145
+          min: 0.0
+          max: 0.6608536557888963
+          count: 21
+          total_sum: 7.35
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.2992774906124012
+            p10: 0.30194214490804716
+            p25: 0.35797833543091956
+            p50: 0.365069537921091
+            p75: 0.36767612483075984
+            p90: 0.3731816609010394
+            p95: 0.3778218608062462
+            p99: 0.6608536557888963
+            p999: 0.6608536557888963
+          pdf: null
+      request_concurrency:
+        successful:
+          mean: 0.9997967084248861
+          median: 1.0
+          mode: 1.0
+          variance: 0.00020325024764942
+          std_dev: 0.014256586114824965
+          min: 0.0
+          max: 1.0
+          count: 22
+          total_sum: 21.995527585347496
+          percentiles:
+            p001: 1.0
+            p01: 1.0
+            p05: 1.0
+            p10: 1.0
+            p25: 1.0
+            p50: 1.0
+            p75: 1.0
+            p90: 1.0
+            p95: 1.0
+            p99: 1.0
+            p999: 1.0
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 0.9997967084248861
+          median: 1.0
+          mode: 1.0
+          variance: 0.00020325024764942
+          std_dev: 0.014256586114824965
+          min: 0.0
+          max: 1.0
+          count: 22
+          total_sum: 21.995527585347496
+          percentiles:
+            p001: 1.0
+            p01: 1.0
+            p05: 1.0
+            p10: 1.0
+            p25: 1.0
+            p50: 1.0
+            p75: 1.0
+            p90: 1.0
+            p95: 1.0
+            p99: 1.0
+            p999: 1.0
+          pdf: null
+      request_latency:
+        successful:
+          mean: 2.834948951547796
+          median: 2.7390007972717285
+          mode: 2.6396563053131104
+          variance: 0.055598139004433125
+          std_dev: 0.23579257622841548
+          min: 2.6396563053131104
+          max: 3.3968560695648193
+          count: 22
+          total_sum: 62.368876934051514
+          percentiles:
+            p001: 2.6396563053131104
+            p01: 2.6396563053131104
+            p05: 2.652750253677368
+            p10: 2.676396608352661
+            p25: 2.7093653678894043
+            p50: 2.7390007972717285
+            p75: 2.765458106994629
+            p90: 3.29460072517395
+            p95: 3.327683925628662
+            p99: 3.3968560695648193
+            p999: 3.3968560695648193
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 2.834948951547796
+          median: 2.7390007972717285
+          mode: 2.6396563053131104
+          variance: 0.055598139004433125
+          std_dev: 0.23579257622841548
+          min: 2.6396563053131104
+          max: 3.3968560695648193
+          count: 22
+          total_sum: 62.368876934051514
+          percentiles:
+            p001: 2.6396563053131104
+            p01: 2.6396563053131104
+            p05: 2.652750253677368
+            p10: 2.676396608352661
+            p25: 2.7093653678894043
+            p50: 2.7390007972717285
+            p75: 2.765458106994629
+            p90: 3.29460072517395
+            p95: 3.327683925628662
+            p99: 3.3968560695648193
+            p999: 3.3968560695648193
+          pdf: null
+      request_streaming_iterations_count:
+        successful:
+          mean: 262.0
+          median: 262.0
+          mode: 262.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 262.0
+          max: 262.0
+          count: 22
+          total_sum: 5764.0
+          percentiles:
+            p001: 262.0
+            p01: 262.0
+            p05: 262.0
+            p10: 262.0
+            p25: 262.0
+            p50: 262.0
+            p75: 262.0
+            p90: 262.0
+            p95: 262.0
+            p99: 262.0
+            p999: 262.0
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 262.0
+          median: 262.0
+          mode: 262.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 262.0
+          max: 262.0
+          count: 22
+          total_sum: 5764.0
+          percentiles:
+            p001: 262.0
+            p01: 262.0
+            p05: 262.0
+            p10: 262.0
+            p25: 262.0
+            p50: 262.0
+            p75: 262.0
+            p90: 262.0
+            p95: 262.0
+            p99: 262.0
+            p999: 262.0
+          pdf: null
+      prompt_token_count:
+        successful:
+          mean: 264.0
+          median: 264.0
+          mode: 264.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 264.0
+          max: 264.0
+          count: 22
+          total_sum: 5808.0
+          percentiles:
+            p001: 264.0
+            p01: 264.0
+            p05: 264.0
+            p10: 264.0
+            p25: 264.0
+            p50: 264.0
+            p75: 264.0
+            p90: 264.0
+            p95: 264.0
+            p99: 264.0
+            p999: 264.0
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 264.0
+          median: 264.0
+          mode: 264.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 264.0
+          max: 264.0
+          count: 22
+          total_sum: 5808.0
+          percentiles:
+            p001: 264.0
+            p01: 264.0
+            p05: 264.0
+            p10: 264.0
+            p25: 264.0
+            p50: 264.0
+            p75: 264.0
+            p90: 264.0
+            p95: 264.0
+            p99: 264.0
+            p999: 264.0
+          pdf: null
+      output_token_count:
+        successful:
+          mean: 128.0
+          median: 128.0
+          mode: 128.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 128.0
+          max: 128.0
+          count: 22
+          total_sum: 2816.0
+          percentiles:
+            p001: 128.0
+            p01: 128.0
+            p05: 128.0
+            p10: 128.0
+            p25: 128.0
+            p50: 128.0
+            p75: 128.0
+            p90: 128.0
+            p95: 128.0
+            p99: 128.0
+            p999: 128.0
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 128.0
+          median: 128.0
+          mode: 128.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 128.0
+          max: 128.0
+          count: 22
+          total_sum: 2816.0
+          percentiles:
+            p001: 128.0
+            p01: 128.0
+            p05: 128.0
+            p10: 128.0
+            p25: 128.0
+            p50: 128.0
+            p75: 128.0
+            p90: 128.0
+            p95: 128.0
+            p99: 128.0
+            p999: 128.0
+          pdf: null
+      total_token_count:
+        successful:
+          mean: 392.0
+          median: 392.0
+          mode: 392.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 392.0
+          max: 392.0
+          count: 22
+          total_sum: 8624.0
+          percentiles:
+            p001: 392.0
+            p01: 392.0
+            p05: 392.0
+            p10: 392.0
+            p25: 392.0
+            p50: 392.0
+            p75: 392.0
+            p90: 392.0
+            p95: 392.0
+            p99: 392.0
+            p999: 392.0
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 392.0
+          median: 392.0
+          mode: 392.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 392.0
+          max: 392.0
+          count: 22
+          total_sum: 8624.0
+          percentiles:
+            p001: 392.0
+            p01: 392.0
+            p05: 392.0
+            p10: 392.0
+            p25: 392.0
+            p50: 392.0
+            p75: 392.0
+            p90: 392.0
+            p95: 392.0
+            p99: 392.0
+            p999: 392.0
+          pdf: null
+      time_to_first_token_ms:
+        successful:
+          mean: 172.4458607760343
+          median: 64.1632080078125
+          mode: 58.290958404541016
+          variance: 48806.1958095125
+          std_dev: 220.92124345456799
+          min: 58.290958404541016
+          max: 665.0362014770508
+          count: 22
+          total_sum: 3793.8089370727544
+          percentiles:
+            p001: 58.290958404541016
+            p01: 58.290958404541016
+            p05: 58.446407318115234
+            p10: 62.89172172546387
+            p25: 63.49325180053711
+            p50: 64.1632080078125
+            p75: 103.68585586547852
+            p90: 629.2414665222168
+            p95: 642.9886817932129
+            p99: 665.0362014770508
+            p999: 665.0362014770508
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 172.4458607760343
+          median: 64.1632080078125
+          mode: 58.290958404541016
+          variance: 48806.1958095125
+          std_dev: 220.92124345456799
+          min: 58.290958404541016
+          max: 665.0362014770508
+          count: 22
+          total_sum: 3793.8089370727544
+          percentiles:
+            p001: 58.290958404541016
+            p01: 58.290958404541016
+            p05: 58.446407318115234
+            p10: 62.89172172546387
+            p25: 63.49325180053711
+            p50: 64.1632080078125
+            p75: 103.68585586547852
+            p90: 629.2414665222168
+            p95: 642.9886817932129
+            p99: 665.0362014770508
+            p999: 665.0362014770508
+          pdf: null
+      time_per_output_token_ms:
+        successful:
+          mean: 22.145118564367294
+          median: 21.395910531282425
+          mode: 20.617900416254997
+          variance: 3.393686676438773
+          std_dev: 1.8421961557985005
+          min: 20.617900416254997
+          max: 26.535354554653168
+          count: 2816
+          total_sum: 62360.6538772583
+          percentiles:
+            p001: 20.617900416254997
+            p01: 20.617900416254997
+            p05: 20.722072571516037
+            p10: 20.90631052851677
+            p25: 21.16457186639309
+            p50: 21.395910531282425
+            p75: 21.60220593214035
+            p90: 25.73590911924839
+            p95: 25.99482424557209
+            p99: 26.535354554653168
+            p999: 26.535354554653168
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 22.145118564367294
+          median: 21.395910531282425
+          mode: 20.617900416254997
+          variance: 3.393686676438773
+          std_dev: 1.8421961557985005
+          min: 20.617900416254997
+          max: 26.535354554653168
+          count: 2816
+          total_sum: 62360.6538772583
+          percentiles:
+            p001: 20.617900416254997
+            p01: 20.617900416254997
+            p05: 20.722072571516037
+            p10: 20.90631052851677
+            p25: 21.16457186639309
+            p50: 21.395910531282425
+            p75: 21.60220593214035
+            p90: 25.73590911924839
+            p95: 25.99482424557209
+            p99: 26.535354554653168
+            p999: 26.535354554653168
+          pdf: null
+      inter_token_latency_ms:
+        successful:
+          mean: 20.96164815325181
+          median: 20.990354808296743
+          mode: 19.980192184448242
+          variance: 0.1544765514671189
+          std_dev: 0.39303505119406196
+          min: 19.980192184448242
+          max: 21.86668013024518
+          count: 2794
+          total_sum: 58566.84494018556
+          percentiles:
+            p001: 19.980192184448242
+            p01: 19.980192184448242
+            p05: 20.266921501460036
+            p10: 20.55387046393447
+            p25: 20.747958205816314
+            p50: 20.990354808296743
+            p75: 21.209281260573018
+            p90: 21.295594418142723
+            p95: 21.50778883085476
+            p99: 21.86668013024518
+            p999: 21.86668013024518
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 20.96164815325181
+          median: 20.990354808296743
+          mode: 19.980192184448242
+          variance: 0.1544765514671189
+          std_dev: 0.39303505119406196
+          min: 19.980192184448242
+          max: 21.86668013024518
+          count: 2794
+          total_sum: 58566.84494018556
+          percentiles:
+            p001: 19.980192184448242
+            p01: 19.980192184448242
+            p05: 20.266921501460036
+            p10: 20.55387046393447
+            p25: 20.747958205816314
+            p50: 20.990354808296743
+            p75: 21.209281260573018
+            p90: 21.295594418142723
+            p95: 21.50778883085476
+            p99: 21.86668013024518
+            p999: 21.86668013024518
+          pdf: null
+      prompt_tokens_per_second:
+        successful:
+          mean: 98.29077837355412
+          median: 96.67446368540226
+          mode: 79.51673196257408
+          variance: 357.19326975791955
+          std_dev: 18.899557395820665
+          min: 79.51673196257408
+          max: 194.28813345199225
+          count: 5808
+          total_sum: 570872.8407936023
+          percentiles:
+            p001: 79.51673196257408
+            p01: 79.51673196257408
+            p05: 79.51673196257408
+            p10: 80.0038911804678
+            p25: 94.59548576479636
+            p50: 96.67446368540226
+            p75: 97.33142027617323
+            p90: 98.56286753134297
+            p95: 156.42804553988555
+            p99: 194.28813345199225
+            p999: 194.28813345199225
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 98.29077837355412
+          median: 96.67446368540226
+          mode: 79.51673196257408
+          variance: 357.19326975791955
+          std_dev: 18.899557395820665
+          min: 79.51673196257408
+          max: 194.28813345199225
+          count: 5808
+          total_sum: 570872.8407936023
+          percentiles:
+            p001: 79.51673196257408
+            p01: 79.51673196257408
+            p05: 79.51673196257408
+            p10: 80.0038911804678
+            p25: 94.59548576479636
+            p50: 96.67446368540226
+            p75: 97.33142027617323
+            p90: 98.56286753134297
+            p95: 156.42804553988555
+            p99: 194.28813345199225
+            p999: 194.28813345199225
+          pdf: null
+      output_tokens_per_second:
+        successful:
+          mean: 45.629379742490364
+          median: 47.61168751560833
+          mode: 47.61168751560833
+          variance: 78.04211666074117
+          std_dev: 8.834144930933677
+          min: 3.005835657061446
+          max: 96.7745091253086
+          count: 2816
+          total_sum: 128492.33335485286
+          percentiles:
+            p001: 3.005835657061446
+            p01: 3.0090595254151684
+            p05: 23.371283377167565
+            p10: 45.731930436678844
+            p25: 47.0741189674523
+            p50: 47.61168751560833
+            p75: 48.19709505423791
+            p90: 48.652739273161735
+            p95: 49.34185047938357
+            p99: 50.050165867163074
+            p999: 50.050165867163074
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 45.629379742490364
+          median: 47.61168751560833
+          mode: 47.61168751560833
+          variance: 78.04211666074117
+          std_dev: 8.834144930933677
+          min: 3.005835657061446
+          max: 96.7745091253086
+          count: 2816
+          total_sum: 128492.33335485286
+          percentiles:
+            p001: 3.005835657061446
+            p01: 3.0090595254151684
+            p05: 23.371283377167565
+            p10: 45.731930436678844
+            p25: 47.0741189674523
+            p50: 47.61168751560833
+            p75: 48.19709505423791
+            p90: 48.652739273161735
+            p95: 49.34185047938357
+            p99: 50.050165867163074
+            p999: 50.050165867163074
+          pdf: null
+      tokens_per_second:
+        successful:
+          mean: 139.73997546137676
+          median: 47.61168751560833
+          mode: 47.61168751560833
+          variance: 560856.0623030543
+          std_dev: 748.9032396131387
+          min: 3.005835657061446
+          max: 24642.291541957653
+          count: 8624
+          total_sum: 1205117.5483789132
+          percentiles:
+            p001: 3.005835657061446
+            p01: 3.069011160761651
+            p05: 45.731431811243404
+            p10: 46.4948897018069
+            p25: 47.148731438078215
+            p50: 47.61168751560833
+            p75: 48.19764889741792
+            p90: 49.34127002799802
+            p95: 50.048971409479265
+            p99: 6074.781163919374
+            p999: 6579.553545530423
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 139.73997546137676
+          median: 47.61168751560833
+          mode: 47.61168751560833
+          variance: 560856.0623030543
+          std_dev: 748.9032396131387
+          min: 3.005835657061446
+          max: 24642.291541957653
+          count: 8624
+          total_sum: 1205117.5483789132
+          percentiles:
+            p001: 3.005835657061446
+            p01: 3.069011160761651
+            p05: 45.731431811243404
+            p10: 46.4948897018069
+            p25: 47.148731438078215
+            p50: 47.61168751560833
+            p75: 48.19764889741792
+            p90: 49.34127002799802
+            p95: 50.048971409479265
+            p99: 6074.781163919374
+            p999: 6579.553545530423
+          pdf: null
+      output_tokens_per_iteration:
+        successful:
+          mean: 1.0
+          median: 1.0
+          mode: 1.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 1.0
+          max: 1.0
+          count: 2816
+          total_sum: 2816.0
+          percentiles:
+            p001: 1.0
+            p01: 1.0
+            p05: 1.0
+            p10: 1.0
+            p25: 1.0
+            p50: 1.0
+            p75: 1.0
+            p90: 1.0
+            p95: 1.0
+            p99: 1.0
+            p999: 1.0
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 1.0
+          median: 1.0
+          mode: 1.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 1.0
+          max: 1.0
+          count: 2816
+          total_sum: 2816.0
+          percentiles:
+            p001: 1.0
+            p01: 1.0
+            p05: 1.0
+            p10: 1.0
+            p25: 1.0
+            p50: 1.0
+            p75: 1.0
+            p90: 1.0
+            p95: 1.0
+            p99: 1.0
+            p999: 1.0
+          pdf: null
+      iter_tokens_per_iteration:
+        successful:
+          mean: 1.0
+          median: 1.0
+          mode: 1.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 1.0
+          max: 1.0
+          count: 2794
+          total_sum: 2794.0
+          percentiles:
+            p001: 1.0
+            p01: 1.0
+            p05: 1.0
+            p10: 1.0
+            p25: 1.0
+            p50: 1.0
+            p75: 1.0
+            p90: 1.0
+            p95: 1.0
+            p99: 1.0
+            p999: 1.0
+          pdf: null
+        errored:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        incomplete:
+          mean: 0.0
+          median: 0.0
+          mode: 0.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 0.0
+          max: 0.0
+          count: 0
+          total_sum: 0.0
+          percentiles:
+            p001: 0.0
+            p01: 0.0
+            p05: 0.0
+            p10: 0.0
+            p25: 0.0
+            p50: 0.0
+            p75: 0.0
+            p90: 0.0
+            p95: 0.0
+            p99: 0.0
+            p999: 0.0
+          pdf: null
+        total:
+          mean: 1.0
+          median: 1.0
+          mode: 1.0
+          variance: 0.0
+          std_dev: 0.0
+          min: 1.0
+          max: 1.0
+          count: 2794
+          total_sum: 2794.0
+          percentiles:
+            p001: 1.0
+            p01: 1.0
+            p05: 1.0
+            p10: 1.0
+            p25: 1.0
+            p50: 1.0
+            p75: 1.0
+            p90: 1.0
+            p95: 1.0
+            p99: 1.0
+            p999: 1.0
+          pdf: null
+      text:
+        tokens:
+          input:
+            successful:
+              mean: 264.0
+              median: 264.0
+              mode: 264.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 264.0
+              max: 264.0
+              count: 22
+              total_sum: 5808.0
+              percentiles:
+                p001: 264.0
+                p01: 264.0
+                p05: 264.0
+                p10: 264.0
+                p25: 264.0
+                p50: 264.0
+                p75: 264.0
+                p90: 264.0
+                p95: 264.0
+                p99: 264.0
+                p999: 264.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 264.0
+              median: 264.0
+              mode: 264.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 264.0
+              max: 264.0
+              count: 22
+              total_sum: 5808.0
+              percentiles:
+                p001: 264.0
+                p01: 264.0
+                p05: 264.0
+                p10: 264.0
+                p25: 264.0
+                p50: 264.0
+                p75: 264.0
+                p90: 264.0
+                p95: 264.0
+                p99: 264.0
+                p999: 264.0
+              pdf: null
+          input_per_second:
+            successful:
+              mean: 98.46888396230662
+              median: 96.6663194477788
+              mode: 79.71272625572445
+              variance: 375.7338337312053
+              std_dev: 19.383854976015616
+              min: 79.71272625572445
+              max: 196.3909656657841
+              count: 5808
+              total_sum: 571907.2780530768
+              percentiles:
+                p001: 79.71272625572445
+                p01: 79.71272625572445
+                p05: 79.71272625572445
+                p10: 79.84057615196541
+                p25: 94.5729364530579
+                p50: 96.6663194477788
+                p75: 97.56961196364509
+                p90: 98.5199584778744
+                p95: 160.7410307058069
+                p99: 196.3909656657841
+                p999: 196.3909656657841
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 98.46888396230662
+              median: 96.6663194477788
+              mode: 79.71272625572445
+              variance: 375.7338337312053
+              std_dev: 19.383854976015616
+              min: 79.71272625572445
+              max: 196.3909656657841
+              count: 5808
+              total_sum: 571907.2780530768
+              percentiles:
+                p001: 79.71272625572445
+                p01: 79.71272625572445
+                p05: 79.71272625572445
+                p10: 79.84057615196541
+                p25: 94.5729364530579
+                p50: 96.6663194477788
+                p75: 97.56961196364509
+                p90: 98.5199584778744
+                p95: 160.7410307058069
+                p99: 196.3909656657841
+                p999: 196.3909656657841
+              pdf: null
+          input_concurrency:
+            successful:
+              mean: 263.9531129466051
+              median: 264.0
+              mode: 264.0
+              variance: 12.375983700483367
+              std_dev: 3.517951634187623
+              min: 0.0
+              max: 264.0
+              count: 22
+              total_sum: 5806.968484825312
+              percentiles:
+                p001: 264.0
+                p01: 264.0
+                p05: 264.0
+                p10: 264.0
+                p25: 264.0
+                p50: 264.0
+                p75: 264.0
+                p90: 264.0
+                p95: 264.0
+                p99: 264.0
+                p999: 264.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 263.9531129466051
+              median: 264.0
+              mode: 264.0
+              variance: 12.375983700483367
+              std_dev: 3.517951634187623
+              min: 0.0
+              max: 264.0
+              count: 22
+              total_sum: 5806.968484825312
+              percentiles:
+                p001: 264.0
+                p01: 264.0
+                p05: 264.0
+                p10: 264.0
+                p25: 264.0
+                p50: 264.0
+                p75: 264.0
+                p90: 264.0
+                p95: 264.0
+                p99: 264.0
+                p999: 264.0
+              pdf: null
+          output:
+            successful:
+              mean: 128.0
+              median: 128.0
+              mode: 128.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 128.0
+              max: 128.0
+              count: 22
+              total_sum: 2816.0
+              percentiles:
+                p001: 128.0
+                p01: 128.0
+                p05: 128.0
+                p10: 128.0
+                p25: 128.0
+                p50: 128.0
+                p75: 128.0
+                p90: 128.0
+                p95: 128.0
+                p99: 128.0
+                p999: 128.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 128.0
+              median: 128.0
+              mode: 128.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 128.0
+              max: 128.0
+              count: 22
+              total_sum: 2816.0
+              percentiles:
+                p001: 128.0
+                p01: 128.0
+                p05: 128.0
+                p10: 128.0
+                p25: 128.0
+                p50: 128.0
+                p75: 128.0
+                p90: 128.0
+                p95: 128.0
+                p99: 128.0
+                p999: 128.0
+              pdf: null
+          output_per_second:
+            successful:
+              mean: 47.74248919384563
+              median: 46.868518520135176
+              mode: 38.64859454823004
+              variance: 88.3267781774
+              std_dev: 9.398232715643937
+              min: 38.64859454823004
+              max: 95.21986214098624
+              count: 2816
+              total_sum: 134442.8495698693
+              percentiles:
+                p001: 38.64859454823004
+                p01: 38.64859454823004
+                p05: 38.64859454823004
+                p10: 38.7105823767105
+                p25: 45.85354494693717
+                p50: 46.868518520135176
+                p75: 47.30647852782792
+                p90: 47.76725259533304
+                p95: 77.93504519069427
+                p99: 95.21986214098624
+                p999: 95.21986214098624
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 47.74248919384563
+              median: 46.868518520135176
+              mode: 38.64859454823004
+              variance: 88.3267781774
+              std_dev: 9.398232715643937
+              min: 38.64859454823004
+              max: 95.21986214098624
+              count: 2816
+              total_sum: 134442.8495698693
+              percentiles:
+                p001: 38.64859454823004
+                p01: 38.64859454823004
+                p05: 38.64859454823004
+                p10: 38.7105823767105
+                p25: 45.85354494693717
+                p50: 46.868518520135176
+                p75: 47.30647852782792
+                p90: 47.76725259533304
+                p95: 77.93504519069427
+                p99: 95.21986214098624
+                p999: 95.21986214098624
+              pdf: null
+          output_concurrency:
+            successful:
+              mean: 127.97726688320246
+              median: 128.0
+              mode: 128.0
+              variance: 2.9093221554855297
+              std_dev: 1.7056735196061201
+              min: 0.0
+              max: 128.0
+              count: 22
+              total_sum: 2815.4998714304543
+              percentiles:
+                p001: 128.0
+                p01: 128.0
+                p05: 128.0
+                p10: 128.0
+                p25: 128.0
+                p50: 128.0
+                p75: 128.0
+                p90: 128.0
+                p95: 128.0
+                p99: 128.0
+                p999: 128.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 127.97726688320246
+              median: 128.0
+              mode: 128.0
+              variance: 2.9093221554855297
+              std_dev: 1.7056735196061201
+              min: 0.0
+              max: 128.0
+              count: 22
+              total_sum: 2815.4998714304543
+              percentiles:
+                p001: 128.0
+                p01: 128.0
+                p05: 128.0
+                p10: 128.0
+                p25: 128.0
+                p50: 128.0
+                p75: 128.0
+                p90: 128.0
+                p95: 128.0
+                p99: 128.0
+                p999: 128.0
+              pdf: null
+          total:
+            successful:
+              mean: 196.0
+              median: 128.0
+              mode: 128.0
+              variance: 4624.0
+              std_dev: 68.0
+              min: 128.0
+              max: 264.0
+              count: 44
+              total_sum: 8624.0
+              percentiles:
+                p001: 128.0
+                p01: 128.0
+                p05: 128.0
+                p10: 128.0
+                p25: 128.0
+                p50: 128.0
+                p75: 264.0
+                p90: 264.0
+                p95: 264.0
+                p99: 264.0
+                p999: 264.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 196.0
+              median: 128.0
+              mode: 128.0
+              variance: 4624.0
+              std_dev: 68.0
+              min: 128.0
+              max: 264.0
+              count: 44
+              total_sum: 8624.0
+              percentiles:
+                p001: 128.0
+                p01: 128.0
+                p05: 128.0
+                p10: 128.0
+                p25: 128.0
+                p50: 128.0
+                p75: 264.0
+                p90: 264.0
+                p95: 264.0
+                p99: 264.0
+                p999: 264.0
+              pdf: null
+          total_per_second:
+            successful:
+              mean: 146.21137315615223
+              median: 143.53483796791397
+              mode: 118.36132080395448
+              variance: 828.4085718903805
+              std_dev: 28.782087691659555
+              min: 118.36132080395448
+              max: 291.6108278067704
+              count: 8624
+              total_sum: 1260926.8820986568
+              percentiles:
+                p001: 118.36132080395448
+                p01: 118.36132080395448
+                p05: 118.36132080395448
+                p10: 118.5511585286759
+                p25: 140.42648139999508
+                p50: 143.53483796791397
+                p75: 144.876090491473
+                p90: 146.28721107320743
+                p95: 238.67607589650117
+                p99: 291.6108278067704
+                p999: 291.6108278067704
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 146.21137315615223
+              median: 143.53483796791397
+              mode: 118.36132080395448
+              variance: 828.4085718903805
+              std_dev: 28.782087691659555
+              min: 118.36132080395448
+              max: 291.6108278067704
+              count: 8624
+              total_sum: 1260926.8820986568
+              percentiles:
+                p001: 118.36132080395448
+                p01: 118.36132080395448
+                p05: 118.36132080395448
+                p10: 118.5511585286759
+                p25: 140.42648139999508
+                p50: 143.53483796791397
+                p75: 144.876090491473
+                p90: 146.28721107320743
+                p95: 238.67607589650117
+                p99: 291.6108278067704
+                p999: 291.6108278067704
+              pdf: null
+          total_concurrency:
+            successful:
+              mean: 391.9303798298075
+              median: 392.0
+              mode: 392.0
+              variance: 27.286259747346712
+              std_dev: 5.223625153793743
+              min: 0.0
+              max: 392.0
+              count: 44
+              total_sum: 17244.93671251153
+              percentiles:
+                p001: 392.0
+                p01: 392.0
+                p05: 392.0
+                p10: 392.0
+                p25: 392.0
+                p50: 392.0
+                p75: 392.0
+                p90: 392.0
+                p95: 392.0
+                p99: 392.0
+                p999: 392.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 391.9303798298075
+              median: 392.0
+              mode: 392.0
+              variance: 27.286259747346712
+              std_dev: 5.223625153793743
+              min: 0.0
+              max: 392.0
+              count: 44
+              total_sum: 17244.93671251153
+              percentiles:
+                p001: 392.0
+                p01: 392.0
+                p05: 392.0
+                p10: 392.0
+                p25: 392.0
+                p50: 392.0
+                p75: 392.0
+                p90: 392.0
+                p95: 392.0
+                p99: 392.0
+                p999: 392.0
+              pdf: null
+        words:
+          input:
+            successful:
+              mean: 214.0909090909091
+              median: 214.0
+              mode: 213.0
+              variance: 2.71900826446281
+              std_dev: 1.6489415588379142
+              min: 211.0
+              max: 218.0
+              count: 22
+              total_sum: 4710.0
+              percentiles:
+                p001: 211.0
+                p01: 211.0
+                p05: 212.0
+                p10: 212.0
+                p25: 213.0
+                p50: 214.0
+                p75: 215.0
+                p90: 216.0
+                p95: 216.0
+                p99: 218.0
+                p999: 218.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 214.0909090909091
+              median: 214.0
+              mode: 213.0
+              variance: 2.71900826446281
+              std_dev: 1.6489415588379142
+              min: 211.0
+              max: 218.0
+              count: 22
+              total_sum: 4710.0
+              percentiles:
+                p001: 211.0
+                p01: 211.0
+                p05: 212.0
+                p10: 212.0
+                p25: 213.0
+                p50: 214.0
+                p75: 215.0
+                p90: 216.0
+                p95: 216.0
+                p99: 218.0
+                p999: 218.0
+              pdf: null
+          input_per_second:
+            successful:
+              mean: 79.853382138854
+              median: 78.351355061715
+              mode: 65.21950330013819
+              variance: 247.330747401451
+              std_dev: 15.726752601902625
+              min: 64.71925491106286
+              max: 159.93961218993783
+              count: 4710
+              total_sum: 376109.42987400235
+              percentiles:
+                p001: 64.71925491106286
+                p01: 64.71925491106286
+                p05: 64.71925491106286
+                p10: 65.21950330013819
+                p25: 76.30316463826263
+                p50: 78.351355061715
+                p75: 79.36447355761992
+                p90: 80.23405709372346
+                p95: 129.68878613763968
+                p99: 159.93961218993783
+                p999: 159.93961218993783
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 79.853382138854
+              median: 78.351355061715
+              mode: 65.21950330013819
+              variance: 247.330747401451
+              std_dev: 15.726752601902625
+              min: 64.71925491106286
+              max: 159.93961218993783
+              count: 4710
+              total_sum: 376109.42987400235
+              percentiles:
+                p001: 64.71925491106286
+                p01: 64.71925491106286
+                p05: 64.71925491106286
+                p10: 65.21950330013819
+                p25: 76.30316463826263
+                p50: 78.351355061715
+                p75: 79.36447355761992
+                p90: 80.23405709372346
+                p95: 129.68878613763968
+                p99: 159.93961218993783
+                p999: 159.93961218993783
+              pdf: null
+          input_concurrency:
+            successful:
+              mean: 214.0495191917881
+              median: 214.0
+              mode: 213.0
+              variance: 10.820028228809806
+              std_dev: 3.2893811315823234
+              min: 0.0
+              max: 218.0
+              count: 22
+              total_sum: 4709.089422219338
+              percentiles:
+                p001: 211.0
+                p01: 211.0
+                p05: 212.0
+                p10: 212.0
+                p25: 213.0
+                p50: 214.0
+                p75: 215.0
+                p90: 216.0
+                p95: 216.0
+                p99: 218.0
+                p999: 218.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 214.0495191917881
+              median: 214.0
+              mode: 213.0
+              variance: 10.820028228809806
+              std_dev: 3.2893811315823234
+              min: 0.0
+              max: 218.0
+              count: 22
+              total_sum: 4709.089422219338
+              percentiles:
+                p001: 211.0
+                p01: 211.0
+                p05: 212.0
+                p10: 212.0
+                p25: 213.0
+                p50: 214.0
+                p75: 215.0
+                p90: 216.0
+                p95: 216.0
+                p99: 218.0
+                p999: 218.0
+              pdf: null
+          output:
+            successful:
+              mean: 103.04545454545453
+              median: 104.0
+              mode: 104.0
+              variance: 9.952479338842975
+              std_dev: 3.1547550362655694
+              min: 92.0
+              max: 107.0
+              count: 22
+              total_sum: 2266.9999999999995
+              percentiles:
+                p001: 92.0
+                p01: 92.0
+                p05: 99.0
+                p10: 100.0
+                p25: 102.0
+                p50: 104.0
+                p75: 105.0
+                p90: 106.0
+                p95: 106.0
+                p99: 107.0
+                p999: 107.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 103.04545454545453
+              median: 104.0
+              mode: 104.0
+              variance: 9.952479338842975
+              std_dev: 3.1547550362655694
+              min: 92.0
+              max: 107.0
+              count: 22
+              total_sum: 2266.9999999999995
+              percentiles:
+                p001: 92.0
+                p01: 92.0
+                p05: 99.0
+                p10: 100.0
+                p25: 102.0
+                p50: 104.0
+                p75: 105.0
+                p90: 106.0
+                p95: 106.0
+                p99: 107.0
+                p999: 107.0
+              pdf: null
+          output_per_second:
+            successful:
+              mean: 38.43473828211933
+              median: 37.5029647327375
+              mode: 31.70392521534495
+              variance: 62.390965531847826
+              std_dev: 7.8987951949552295
+              min: 31.70392521534495
+              max: 78.11004316252777
+              count: 2267
+              total_sum: 87131.55168556453
+              percentiles:
+                p001: 31.70392521534495
+                p01: 31.70392521534495
+                p05: 31.70392521534495
+                p10: 31.75477460589533
+                p25: 36.18131280969261
+                p50: 37.5029647327375
+                p75: 38.39345101192966
+                p90: 39.062440557556734
+                p95: 64.53995929854369
+                p99: 78.11004316252777
+                p999: 78.11004316252777
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 38.43473828211933
+              median: 37.5029647327375
+              mode: 31.70392521534495
+              variance: 62.390965531847826
+              std_dev: 7.8987951949552295
+              min: 31.70392521534495
+              max: 78.11004316252777
+              count: 2267
+              total_sum: 87131.55168556453
+              percentiles:
+                p001: 31.70392521534495
+                p01: 31.70392521534495
+                p05: 31.70392521534495
+                p10: 31.75477460589533
+                p25: 36.18131280969261
+                p50: 37.5029647327375
+                p75: 38.39345101192966
+                p90: 39.062440557556734
+                p95: 64.53995929854369
+                p99: 78.11004316252777
+                p999: 78.11004316252777
+              pdf: null
+          output_concurrency:
+            successful:
+              mean: 103.12716002015867
+              median: 104.0
+              mode: 105.0
+              variance: 11.471226309539272
+              std_dev: 3.3869198853145717
+              min: 0.0
+              max: 107.0
+              count: 22
+              total_sum: 2268.7975204434906
+              percentiles:
+                p001: 92.0
+                p01: 92.0
+                p05: 99.0
+                p10: 100.0
+                p25: 102.0
+                p50: 104.0
+                p75: 105.0
+                p90: 106.0
+                p95: 106.0
+                p99: 107.0
+                p999: 107.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 103.12716002015867
+              median: 104.0
+              mode: 105.0
+              variance: 11.471226309539272
+              std_dev: 3.3869198853145717
+              min: 0.0
+              max: 107.0
+              count: 22
+              total_sum: 2268.7975204434906
+              percentiles:
+                p001: 92.0
+                p01: 92.0
+                p05: 99.0
+                p10: 100.0
+                p25: 102.0
+                p50: 104.0
+                p75: 105.0
+                p90: 106.0
+                p95: 106.0
+                p99: 107.0
+                p999: 107.0
+              pdf: null
+          total:
+            successful:
+              mean: 158.56818181818184
+              median: 211.0
+              mode: 213.0
+              variance: 3089.1089876033056
+              std_dev: 55.57975339638802
+              min: 92.0
+              max: 218.0
+              count: 44
+              total_sum: 6977.000000000001
+              percentiles:
+                p001: 92.0
+                p01: 92.0
+                p05: 100.0
+                p10: 101.0
+                p25: 104.0
+                p50: 211.0
+                p75: 214.0
+                p90: 216.0
+                p95: 216.0
+                p99: 218.0
+                p999: 218.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 158.56818181818184
+              median: 211.0
+              mode: 213.0
+              variance: 3089.1089876033056
+              std_dev: 55.57975339638802
+              min: 92.0
+              max: 218.0
+              count: 44
+              total_sum: 6977.000000000001
+              percentiles:
+                p001: 92.0
+                p01: 92.0
+                p05: 100.0
+                p10: 101.0
+                p25: 104.0
+                p50: 211.0
+                p75: 214.0
+                p90: 216.0
+                p95: 216.0
+                p99: 218.0
+                p999: 218.0
+              pdf: null
+          total_per_second:
+            successful:
+              mean: 118.28812042097334
+              median: 115.81797932168935
+              mode: 96.92342851548314
+              variance: 555.5736223613119
+              std_dev: 23.57060929126169
+              min: 96.4740295169582
+              max: 238.0496553524656
+              count: 6977
+              total_sum: 825296.216177131
+              percentiles:
+                p001: 96.4740295169582
+                p01: 96.4740295169582
+                p05: 96.4740295169582
+                p10: 96.92342851548314
+                p25: 112.76317566073966
+                p50: 115.81797932168935
+                p75: 117.7645276231304
+                p90: 118.8604087553087
+                p95: 194.22874543618335
+                p99: 238.0496553524656
+                p999: 238.0496553524656
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 118.28812042097334
+              median: 115.81797932168935
+              mode: 96.92342851548314
+              variance: 555.5736223613119
+              std_dev: 23.57060929126169
+              min: 96.4740295169582
+              max: 238.0496553524656
+              count: 6977
+              total_sum: 825296.216177131
+              percentiles:
+                p001: 96.4740295169582
+                p01: 96.4740295169582
+                p05: 96.4740295169582
+                p10: 96.92342851548314
+                p25: 112.76317566073966
+                p50: 115.81797932168935
+                p75: 117.7645276231304
+                p90: 118.8604087553087
+                p95: 194.22874543618335
+                p99: 238.0496553524656
+                p999: 238.0496553524656
+              pdf: null
+          total_concurrency:
+            successful:
+              mean: 317.17667921194675
+              median: 319.0
+              mode: 319.0
+              variance: 32.484667127256934
+              std_dev: 5.699532184947896
+              min: 0.0
+              max: 325.0
+              count: 44
+              total_sum: 13955.773885325656
+              percentiles:
+                p001: 307.0
+                p01: 307.0
+                p05: 312.0
+                p10: 312.0
+                p25: 315.0
+                p50: 319.0
+                p75: 319.0
+                p90: 321.0
+                p95: 322.0
+                p99: 325.0
+                p999: 325.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 317.17667921194675
+              median: 319.0
+              mode: 319.0
+              variance: 32.484667127256934
+              std_dev: 5.699532184947896
+              min: 0.0
+              max: 325.0
+              count: 44
+              total_sum: 13955.773885325656
+              percentiles:
+                p001: 307.0
+                p01: 307.0
+                p05: 312.0
+                p10: 312.0
+                p25: 315.0
+                p50: 319.0
+                p75: 319.0
+                p90: 321.0
+                p95: 322.0
+                p99: 325.0
+                p999: 325.0
+              pdf: null
+        characters:
+          input:
+            successful:
+              mean: 1434.9545454545455
+              median: 1437.0
+              mode: 1424.0
+              variance: 1435.0433884297522
+              std_dev: 37.88196653329592
+              min: 1333.0
+              max: 1502.0
+              count: 22
+              total_sum: 31569.0
+              percentiles:
+                p001: 1333.0
+                p01: 1333.0
+                p05: 1386.0
+                p10: 1394.0
+                p25: 1408.0
+                p50: 1437.0
+                p75: 1458.0
+                p90: 1481.0
+                p95: 1497.0
+                p99: 1502.0
+                p999: 1502.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 1434.9545454545455
+              median: 1437.0
+              mode: 1424.0
+              variance: 1435.0433884297522
+              std_dev: 37.88196653329592
+              min: 1333.0
+              max: 1502.0
+              count: 22
+              total_sum: 31569.0
+              percentiles:
+                p001: 1333.0
+                p01: 1333.0
+                p05: 1386.0
+                p10: 1394.0
+                p25: 1408.0
+                p50: 1437.0
+                p75: 1458.0
+                p90: 1481.0
+                p95: 1497.0
+                p99: 1502.0
+                p999: 1502.0
+              pdf: null
+          input_per_second:
+            successful:
+              mean: 535.221108437682
+              median: 526.5122107576481
+              mode: 435.702515102312
+              variance: 10585.19134452703
+              std_dev: 102.88435908595159
+              min: 435.702515102312
+              max: 1059.3209663184718
+              count: 31569
+              total_sum: 16896395.172269184
+              percentiles:
+                p001: 435.702515102312
+                p01: 435.702515102312
+                p05: 435.702515102312
+                p10: 440.937727384718
+                p25: 504.0334962867347
+                p50: 526.5122107576481
+                p75: 531.5497331384094
+                p90: 552.6820397944393
+                p95: 853.6322918543231
+                p99: 1059.3209663184718
+                p999: 1059.3209663184718
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 535.221108437682
+              median: 526.5122107576481
+              mode: 435.702515102312
+              variance: 10585.19134452703
+              std_dev: 102.88435908595159
+              min: 435.702515102312
+              max: 1059.3209663184718
+              count: 31569
+              total_sum: 16896395.172269184
+              percentiles:
+                p001: 435.702515102312
+                p01: 435.702515102312
+                p05: 435.702515102312
+                p10: 440.937727384718
+                p25: 504.0334962867347
+                p50: 526.5122107576481
+                p75: 531.5497331384094
+                p90: 552.6820397944393
+                p95: 853.6322918543231
+                p99: 1059.3209663184718
+                p999: 1059.3209663184718
+              pdf: null
+          input_concurrency:
+            successful:
+              mean: 1434.7324051187215
+              median: 1440.0
+              mode: 1458.0
+              variance: 1758.1006236408386
+              std_dev: 41.92971051224703
+              min: 0.0
+              max: 1502.0
+              count: 22
+              total_sum: 31564.112912611876
+              percentiles:
+                p001: 1333.0
+                p01: 1333.0
+                p05: 1386.0
+                p10: 1394.0
+                p25: 1408.0
+                p50: 1440.0
+                p75: 1458.0
+                p90: 1481.0
+                p95: 1497.0
+                p99: 1502.0
+                p999: 1502.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 1434.7324051187215
+              median: 1440.0
+              mode: 1458.0
+              variance: 1758.1006236408386
+              std_dev: 41.92971051224703
+              min: 0.0
+              max: 1502.0
+              count: 22
+              total_sum: 31564.112912611876
+              percentiles:
+                p001: 1333.0
+                p01: 1333.0
+                p05: 1386.0
+                p10: 1394.0
+                p25: 1408.0
+                p50: 1440.0
+                p75: 1458.0
+                p90: 1481.0
+                p95: 1497.0
+                p99: 1502.0
+                p999: 1502.0
+              pdf: null
+          output:
+            successful:
+              mean: 604.1818181818182
+              median: 608.0
+              mode: 610.0
+              variance: 978.6942148760331
+              std_dev: 31.284088845226627
+              min: 516.0
+              max: 656.0
+              count: 22
+              total_sum: 13292.000000000002
+              percentiles:
+                p001: 516.0
+                p01: 516.0
+                p05: 556.0
+                p10: 571.0
+                p25: 582.0
+                p50: 608.0
+                p75: 625.0
+                p90: 640.0
+                p95: 643.0
+                p99: 656.0
+                p999: 656.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 604.1818181818182
+              median: 608.0
+              mode: 610.0
+              variance: 978.6942148760331
+              std_dev: 31.284088845226627
+              min: 516.0
+              max: 656.0
+              count: 22
+              total_sum: 13292.000000000002
+              percentiles:
+                p001: 516.0
+                p01: 516.0
+                p05: 556.0
+                p10: 571.0
+                p25: 582.0
+                p50: 608.0
+                p75: 625.0
+                p90: 640.0
+                p95: 643.0
+                p99: 656.0
+                p999: 656.0
+              pdf: null
+          output_per_second:
+            successful:
+              mean: 225.35268691924577
+              median: 219.838469878231
+              mode: 198.07404705967892
+              variance: 2367.516192583484
+              std_dev: 48.657128897865356
+              min: 184.48011913901098
+              max: 460.47730207242563
+              count: 13292
+              total_sum: 2995387.914530615
+              percentiles:
+                p001: 184.48011913901098
+                p01: 184.48011913901098
+                p05: 184.48011913901098
+                p10: 184.84710306734047
+                p25: 203.21720204026485
+                p50: 219.838469878231
+                p75: 229.62873935236624
+                p90: 234.34259260067589
+                p95: 391.50182857512823
+                p99: 460.47730207242563
+                p999: 460.47730207242563
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 225.35268691924577
+              median: 219.838469878231
+              mode: 198.07404705967892
+              variance: 2367.516192583484
+              std_dev: 48.657128897865356
+              min: 184.48011913901098
+              max: 460.47730207242563
+              count: 13292
+              total_sum: 2995387.914530615
+              percentiles:
+                p001: 184.48011913901098
+                p01: 184.48011913901098
+                p05: 184.48011913901098
+                p10: 184.84710306734047
+                p25: 203.21720204026485
+                p50: 219.838469878231
+                p75: 229.62873935236624
+                p90: 234.34259260067589
+                p95: 391.50182857512823
+                p99: 460.47730207242563
+                p999: 460.47730207242563
+              pdf: null
+          output_concurrency:
+            successful:
+              mean: 604.7002232620731
+              median: 609.0
+              mode: 610.0
+              variance: 1066.6099654334791
+              std_dev: 32.65899516876597
+              min: 0.0
+              max: 656.0
+              count: 22
+              total_sum: 13303.404911765609
+              percentiles:
+                p001: 516.0
+                p01: 516.0
+                p05: 556.0
+                p10: 571.0
+                p25: 582.0
+                p50: 609.0
+                p75: 625.0
+                p90: 643.0
+                p95: 656.0
+                p99: 656.0
+                p999: 656.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 604.7002232620731
+              median: 609.0
+              mode: 610.0
+              variance: 1066.6099654334791
+              std_dev: 32.65899516876597
+              min: 0.0
+              max: 656.0
+              count: 22
+              total_sum: 13303.404911765609
+              percentiles:
+                p001: 516.0
+                p01: 516.0
+                p05: 556.0
+                p10: 571.0
+                p25: 582.0
+                p50: 609.0
+                p75: 625.0
+                p90: 643.0
+                p95: 656.0
+                p99: 656.0
+                p999: 656.0
+              pdf: null
+          total:
+            successful:
+              mean: 1019.5681818181819
+              median: 1333.0
+              mode: 610.0
+              variance: 173752.69989669422
+              std_dev: 416.8365385816054
+              min: 516.0
+              max: 1502.0
+              count: 44
+              total_sum: 44861.0
+              percentiles:
+                p001: 516.0
+                p01: 516.0
+                p05: 571.0
+                p10: 580.0
+                p25: 608.0
+                p50: 1333.0
+                p75: 1440.0
+                p90: 1458.0
+                p95: 1481.0
+                p99: 1502.0
+                p999: 1502.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 1019.5681818181819
+              median: 1333.0
+              mode: 610.0
+              variance: 173752.69989669422
+              std_dev: 416.8365385816054
+              min: 516.0
+              max: 1502.0
+              count: 44
+              total_sum: 44861.0
+              percentiles:
+                p001: 516.0
+                p01: 516.0
+                p05: 571.0
+                p10: 580.0
+                p25: 608.0
+                p50: 1333.0
+                p75: 1440.0
+                p90: 1458.0
+                p95: 1481.0
+                p99: 1502.0
+                p999: 1502.0
+              pdf: null
+          total_per_second:
+            successful:
+              mean: 760.5737953569277
+              median: 749.6916185299193
+              mode: 633.7765621619909
+              variance: 22687.611758565727
+              std_dev: 150.62407429944832
+              min: 625.4178465237289
+              max: 1519.7982683908976
+              count: 44861
+              total_sum: 34120101.03350713
+              percentiles:
+                p001: 625.4178465237289
+                p01: 625.4178465237289
+                p05: 625.4178465237289
+                p10: 633.7765621619909
+                p25: 706.431021545954
+                p50: 749.6916185299193
+                p75: 763.5779806894236
+                p90: 776.05492220466
+                p95: 1245.1341204294513
+                p99: 1519.7982683908976
+                p999: 1519.7982683908976
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 760.5737953569277
+              median: 749.6916185299193
+              mode: 633.7765621619909
+              variance: 22687.611758565727
+              std_dev: 150.62407429944832
+              min: 625.4178465237289
+              max: 1519.7982683908976
+              count: 44861
+              total_sum: 34120101.03350713
+              percentiles:
+                p001: 625.4178465237289
+                p01: 625.4178465237289
+                p05: 625.4178465237289
+                p10: 633.7765621619909
+                p25: 706.431021545954
+                p50: 749.6916185299193
+                p75: 763.5779806894236
+                p90: 776.05492220466
+                p95: 1245.1341204294513
+                p99: 1519.7982683908976
+                p999: 1519.7982683908976
+              pdf: null
+          total_concurrency:
+            successful:
+              mean: 2039.4326283807943
+              median: 2043.0
+              mode: 2045.0
+              variance: 3668.666192866162
+              std_dev: 60.569515375856874
+              min: 0.0
+              max: 2136.0
+              count: 44
+              total_sum: 89735.03564875494
+              percentiles:
+                p001: 1910.0
+                p01: 1910.0
+                p05: 1942.0
+                p10: 1968.0
+                p25: 2009.0
+                p50: 2043.0
+                p75: 2079.0
+                p90: 2099.0
+                p95: 2123.0
+                p99: 2136.0
+                p999: 2136.0
+              pdf: null
+            errored:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            incomplete:
+              mean: 0.0
+              median: 0.0
+              mode: 0.0
+              variance: 0.0
+              std_dev: 0.0
+              min: 0.0
+              max: 0.0
+              count: 0
+              total_sum: 0.0
+              percentiles:
+                p001: 0.0
+                p01: 0.0
+                p05: 0.0
+                p10: 0.0
+                p25: 0.0
+                p50: 0.0
+                p75: 0.0
+                p90: 0.0
+                p95: 0.0
+                p99: 0.0
+                p999: 0.0
+              pdf: null
+            total:
+              mean: 2039.4326283807943
+              median: 2043.0
+              mode: 2045.0
+              variance: 3668.666192866162
+              std_dev: 60.569515375856874
+              min: 0.0
+              max: 2136.0
+              count: 44
+              total_sum: 89735.03564875494
+              percentiles:
+                p001: 1910.0
+                p01: 1910.0
+                p05: 1942.0
+                p10: 1968.0
+                p25: 2009.0
+                p50: 2043.0
+                p75: 2079.0
+                p90: 2099.0
+                p95: 2123.0
+                p99: 2136.0
+                p999: 2136.0
+              pdf: null
+      image:
+        tokens:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+        images:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+        pixels:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+        bytes:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+      video:
+        tokens:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+        frames:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+        seconds:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+        bytes:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+      audio:
+        tokens:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+        samples:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+        seconds:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+        bytes:
+          input: null
+          input_per_second: null
+          input_concurrency: null
+          output: null
+          output_per_second: null
+          output_concurrency: null
+          total: null
+          total_per_second: null
+          total_concurrency: null
+    requests:
+      successful:
+        - type_: "generative_request_stats"
+          request_id: "e748ef64-529e-4a36-9e29-22671ba0038c"
+          request_type: "chat_completions"
+          response_id: "chatcmpl-97d33b53-dd3f-4cf7-a4fe-930f2856b2de"
+          request_args: "{'method': None, 'stream': True, 'headers': None, 'params': None, 'body': {'mode..."
+          output: "<think>
+Okay, let's tackle this. The user provided a list of sentences and wants..."
+          info:
+            request_id: "e748ef64-529e-4a36-9e29-22671ba0038c"
+            status: "completed"
+            scheduler_node_id: -1
+            scheduler_process_id: 0
+            scheduler_start_time: 1771372871.395729
+            timings:
+              targeted_start: 1771372871.395729
+              queued: 1771372870.416543
+              dequeued: 1771372871.3964632
+              scheduled_at: 1771372871.3964632
+              resolve_start: 1771372871.396713
+              request_start: 1771372871.3968477
+              first_request_iteration: 1771372872.061698
+              first_token_iteration: 1771372872.061884
+              last_token_iteration: 1771372874.793373
+              last_request_iteration: 1771372874.7934191
+              request_iterations: 262
+              token_iterations: 128
+              request_end: 1771372874.7937038
+              resolve_end: 1771372874.7939482
+              finalized: 1771372874.7956786
+            error: null
+            started_at: 1771372871.3968477
+            completed_at: 1771372874.7937038
+          input_metrics:
+            text_tokens: 264
+            text_words: 213
+            text_characters: 1402
+            image_tokens: null
+            image_count: null
+            image_pixels: null
+            image_bytes: null
+            video_tokens: null
+            video_frames: null
+            video_seconds: null
+            video_bytes: null
+            audio_tokens: null
+            audio_samples: null
+            audio_seconds: null
+            audio_bytes: null
+            total_tokens: 264
+          output_metrics:
+            text_tokens: 128
+            text_words: 106
+            text_characters: 643
+            image_tokens: null
+            image_count: null
+            image_pixels: null
+            image_bytes: null
+            video_tokens: null
+            video_frames: null
+            video_seconds: null
+            video_bytes: null
+            audio_tokens: null
+            audio_samples: null
+            audio_seconds: null
+            audio_bytes: null
+            total_tokens: 128
+          request_start_time: 1771372871.3968477
+          request_end_time: 1771372874.7937038
+          request_latency: 3.3968560695648193
+          prompt_tokens: 264
+          input_tokens: 264
+          output_tokens: 128
+          total_tokens: 392
+          time_to_first_token_ms: 665.0362014770508
+          time_per_output_token_ms: 26.535354554653168
+          inter_token_latency_ms: 21.50778883085476
+          tokens_per_second: 115.40082710958671
+          output_tokens_per_second: 37.68190272966097
+          iter_tokens_per_iteration: 1.0
+          output_tokens_per_iteration: 1.0
+        - _note: "... 21 more request entries omitted for readability"
+      errored: []
+      incomplete:
+        - type_: "generative_request_stats"
+          request_id: "cd24a305-16d6-49e0-838d-a4b1a6d7b9b2"
+          request_type: "chat_completions"
+          response_id: null
+          request_args: "{'method': None, 'stream': True, 'headers': None, 'params': None, 'body': {'mode..."
+          output: ""
+          info:
+            request_id: "cd24a305-16d6-49e0-838d-a4b1a6d7b9b2"
+            status: "cancelled"
+            scheduler_node_id: -1
+            scheduler_process_id: 0
+            scheduler_start_time: 1771372871.395729
+            timings:
+              targeted_start: 1771372871.395729
+              queued: 1771372923.0794966
+              dequeued: 1771372933.7771542
+              scheduled_at: 1771372933.7771542
+              resolve_start: 1771372933.7771955
+              request_start: 1771372933.7772174
+              first_request_iteration: null
+              first_token_iteration: null
+              last_token_iteration: null
+              last_request_iteration: null
+              request_iterations: 0
+              token_iterations: 0
+              request_end: null
+              resolve_end: 1771372933.7799795
+              finalized: 1771372933.7819147
+            error: "Request was cancelled"
+            started_at: 1771372933.7772174
+            completed_at: 1771372933.7799795
+          input_metrics:
+            text_tokens: 256
+            text_words: 214
+            text_characters: 1442
+            image_tokens: null
+            image_count: null
+            image_pixels: null
+            image_bytes: null
+            video_tokens: null
+            video_frames: null
+            video_seconds: null
+            video_bytes: null
+            audio_tokens: null
+            audio_samples: null
+            audio_seconds: null
+            audio_bytes: null
+            total_tokens: 256
+          output_metrics:
+            text_tokens: null
+            text_words: 0
+            text_characters: 0
+            image_tokens: null
+            image_count: null
+            image_pixels: null
+            image_bytes: null
+            video_tokens: null
+            video_frames: null
+            video_seconds: null
+            video_bytes: null
+            audio_tokens: null
+            audio_samples: null
+            audio_seconds: null
+            audio_bytes: null
+            total_tokens: null
+          request_start_time: 1771372933.7772174
+          request_end_time: 1771372933.7799795
+          request_latency: null
+          prompt_tokens: 256
+          input_tokens: 256
+          output_tokens: null
+          total_tokens: 256
+          time_to_first_token_ms: null
+          time_per_output_token_ms: null
+          inter_token_latency_ms: null
+          tokens_per_second: null
+          output_tokens_per_second: null
+          iter_tokens_per_iteration: null
+          output_tokens_per_iteration: null
+      total: null
+    start_time: 1771372871.395729
+    end_time: 1771372931.395729
+    duration: 60.0
+    warmup_duration: 0.0
+    cooldown_duration: 0.0

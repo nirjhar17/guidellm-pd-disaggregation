@@ -1,0 +1,5 @@
+remote_theme: pages-themes/cayman@v0.2.0
+plugins:
+  - jekyll-remote-theme
+title: GuideLLM P/D Disaggregation Benchmarks
+description: Benchmarking Prefill/Decode Disaggregation on OpenShift AI with GuideLLM

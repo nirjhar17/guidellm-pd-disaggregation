@@ -1,0 +1,13 @@
+# Patch the existing ClusterPolicy to reference the time-slicing ConfigMap
+# Apply with:
+#   oc patch clusterpolicy gpu-cluster-policy --type=merge -p "$(cat 03-clusterpolicy-patch.yaml)"
+#
+# The "default" field controls which config key is used when a node
+# has NO nvidia.com/device-plugin.config label:
+#   - ""          = no time-slicing (node must have the label)
+#   - "Tesla-T4"  = all GPU nodes get time-slicing automatically
+spec:
+  devicePlugin:
+    config:
+      name: device-plugin-config
+      default: ""

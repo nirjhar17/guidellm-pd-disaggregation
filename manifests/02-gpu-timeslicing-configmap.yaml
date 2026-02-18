@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: device-plugin-config
+  namespace: nvidia-gpu-operator
+data:
+  # Key name must match the GPU product name (nvidia-smi output)
+  # This config is activated on nodes labeled:
+  #   nvidia.com/device-plugin.config=Tesla-T4
+  Tesla-T4: |-
+    version: v1
+    sharing:
+      timeSlicing:
+        resources:
+        - name: nvidia.com/gpu
+          replicas: 4

@@ -1,0 +1,321 @@
+# All 7 GuideLLM benchmark Jobs -- one per load profile
+# Target: EPP Gateway (goes through llm-d intelligent routing)
+# PVC: guidellm-results-pvc in guidellm-lab namespace
+# Run one at a time: oc apply -f <this-file> won't work (duplicate names)
+# Instead, use: oc apply -f <this-file> with yq to select individual docs
+
+---
+# 1. SYNCHRONOUS -- one request at a time (baseline)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guidellm-profile-synchronous
+  namespace: guidellm-lab
+spec:
+  template:
+    spec:
+      containers:
+      - name: guidellm
+        image: ghcr.io/vllm-project/guidellm:v0.5.0
+        env:
+        - name: HOME
+          value: /results
+        command: ["guidellm"]
+        args:
+        - "benchmark"
+        - "run"
+        - "--target"
+        - "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws.com/my-first-model/qwen3-0-6b"
+        - "--model"
+        - "Qwen/Qwen3-0.6B"
+        - "--data"
+        - '{"prompt_tokens":256,"output_tokens":128}'
+        - "--profile"
+        - "synchronous"
+        - "--max-seconds"
+        - "60"
+        - "--output-dir"
+        - "/results"
+        - "--outputs"
+        - "sync-benchmarks.json,sync-benchmarks.html"
+        volumeMounts:
+        - name: results
+          mountPath: /results
+      volumes:
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results-pvc
+      restartPolicy: Never
+  backoffLimit: 1
+
+---
+# 2. CONCURRENT (4) -- 4 parallel requests
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guidellm-profile-concurrent-4
+  namespace: guidellm-lab
+spec:
+  template:
+    spec:
+      containers:
+      - name: guidellm
+        image: ghcr.io/vllm-project/guidellm:v0.5.0
+        env:
+        - name: HOME
+          value: /results
+        command: ["guidellm"]
+        args:
+        - "benchmark"
+        - "run"
+        - "--target"
+        - "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws.com/my-first-model/qwen3-0-6b"
+        - "--model"
+        - "Qwen/Qwen3-0.6B"
+        - "--data"
+        - '{"prompt_tokens":256,"output_tokens":128}'
+        - "--profile"
+        - "concurrent"
+        - "--rate"
+        - "4"
+        - "--max-seconds"
+        - "60"
+        - "--output-dir"
+        - "/results"
+        - "--outputs"
+        - "concurrent-4-benchmarks.json,concurrent-4-benchmarks.html"
+        volumeMounts:
+        - name: results
+          mountPath: /results
+      volumes:
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results-pvc
+      restartPolicy: Never
+  backoffLimit: 1
+
+---
+# 3. CONCURRENT (16) -- 16 parallel requests
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guidellm-profile-concurrent-16
+  namespace: guidellm-lab
+spec:
+  template:
+    spec:
+      containers:
+      - name: guidellm
+        image: ghcr.io/vllm-project/guidellm:v0.5.0
+        env:
+        - name: HOME
+          value: /results
+        command: ["guidellm"]
+        args:
+        - "benchmark"
+        - "run"
+        - "--target"
+        - "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws.com/my-first-model/qwen3-0-6b"
+        - "--model"
+        - "Qwen/Qwen3-0.6B"
+        - "--data"
+        - '{"prompt_tokens":256,"output_tokens":128}'
+        - "--profile"
+        - "concurrent"
+        - "--rate"
+        - "16"
+        - "--max-seconds"
+        - "60"
+        - "--output-dir"
+        - "/results"
+        - "--outputs"
+        - "concurrent-16-benchmarks.json,concurrent-16-benchmarks.html"
+        volumeMounts:
+        - name: results
+          mountPath: /results
+      volumes:
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results-pvc
+      restartPolicy: Never
+  backoffLimit: 1
+
+---
+# 4. THROUGHPUT -- max capacity (firehose)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guidellm-profile-throughput
+  namespace: guidellm-lab
+spec:
+  template:
+    spec:
+      containers:
+      - name: guidellm
+        image: ghcr.io/vllm-project/guidellm:v0.5.0
+        env:
+        - name: HOME
+          value: /results
+        command: ["guidellm"]
+        args:
+        - "benchmark"
+        - "run"
+        - "--target"
+        - "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws.com/my-first-model/qwen3-0-6b"
+        - "--model"
+        - "Qwen/Qwen3-0.6B"
+        - "--data"
+        - '{"prompt_tokens":256,"output_tokens":128}'
+        - "--profile"
+        - "throughput"
+        - "--max-seconds"
+        - "60"
+        - "--output-dir"
+        - "/results"
+        - "--outputs"
+        - "throughput-benchmarks.json,throughput-benchmarks.html"
+        volumeMounts:
+        - name: results
+          mountPath: /results
+      volumes:
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results-pvc
+      restartPolicy: Never
+  backoffLimit: 1
+
+---
+# 5. CONSTANT (5 req/s) -- fixed request rate
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guidellm-profile-constant-5
+  namespace: guidellm-lab
+spec:
+  template:
+    spec:
+      containers:
+      - name: guidellm
+        image: ghcr.io/vllm-project/guidellm:v0.5.0
+        env:
+        - name: HOME
+          value: /results
+        command: ["guidellm"]
+        args:
+        - "benchmark"
+        - "run"
+        - "--target"
+        - "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws.com/my-first-model/qwen3-0-6b"
+        - "--model"
+        - "Qwen/Qwen3-0.6B"
+        - "--data"
+        - '{"prompt_tokens":256,"output_tokens":128}'
+        - "--profile"
+        - "constant"
+        - "--rate"
+        - "5"
+        - "--max-seconds"
+        - "60"
+        - "--output-dir"
+        - "/results"
+        - "--outputs"
+        - "constant-5-benchmarks.json,constant-5-benchmarks.html"
+        volumeMounts:
+        - name: results
+          mountPath: /results
+      volumes:
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results-pvc
+      restartPolicy: Never
+  backoffLimit: 1
+
+---
+# 6. POISSON (5 req/s) -- randomized request rate (realistic traffic)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guidellm-profile-poisson-5
+  namespace: guidellm-lab
+spec:
+  template:
+    spec:
+      containers:
+      - name: guidellm
+        image: ghcr.io/vllm-project/guidellm:v0.5.0
+        env:
+        - name: HOME
+          value: /results
+        command: ["guidellm"]
+        args:
+        - "benchmark"
+        - "run"
+        - "--target"
+        - "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws.com/my-first-model/qwen3-0-6b"
+        - "--model"
+        - "Qwen/Qwen3-0.6B"
+        - "--data"
+        - '{"prompt_tokens":256,"output_tokens":128}'
+        - "--profile"
+        - "poisson"
+        - "--rate"
+        - "5"
+        - "--max-seconds"
+        - "60"
+        - "--output-dir"
+        - "/results"
+        - "--outputs"
+        - "poisson-5-benchmarks.json,poisson-5-benchmarks.html"
+        volumeMounts:
+        - name: results
+          mountPath: /results
+      volumes:
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results-pvc
+      restartPolicy: Never
+  backoffLimit: 1
+
+---
+# 7. SWEEP -- automatically explores increasing concurrency
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guidellm-profile-sweep
+  namespace: guidellm-lab
+spec:
+  template:
+    spec:
+      containers:
+      - name: guidellm
+        image: ghcr.io/vllm-project/guidellm:v0.5.0
+        env:
+        - name: HOME
+          value: /results
+        command: ["guidellm"]
+        args:
+        - "benchmark"
+        - "run"
+        - "--target"
+        - "http://aed7822c4ec88495fa795e5c47c2d24f-1452512295.ap-southeast-1.elb.amazonaws.com/my-first-model/qwen3-0-6b"
+        - "--model"
+        - "Qwen/Qwen3-0.6B"
+        - "--data"
+        - '{"prompt_tokens":256,"output_tokens":128}'
+        - "--profile"
+        - "sweep"
+        - "--max-seconds"
+        - "30"
+        - "--output-dir"
+        - "/results"
+        - "--outputs"
+        - "sweep-benchmarks.json,sweep-benchmarks.html"
+        volumeMounts:
+        - name: results
+          mountPath: /results
+      volumes:
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results-pvc
+      restartPolicy: Never
+  backoffLimit: 1
