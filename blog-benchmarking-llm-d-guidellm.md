@@ -471,7 +471,23 @@ The load was also evenly distributed across all 4 pods (approximately 27,550 que
 
 KV cache usage stayed under 3% throughout the run. Because cached prefixes are reused rather than reallocated, memory consumption stays flat even as more requests arrive. This is the efficiency gain that makes prefix caching valuable at scale.
 
-Compare this to the GuideLLM benchmarks with random prompts: 0% cache hit rate, 31% KV cache usage at peak. Same model, same hardware, same EPP configuration. The only difference was the workload pattern.
+The inference-perf run also gave us TTFT and ITL numbers to compare against the GuideLLM benchmarks that used random prompts.
+
+With shared prefixes (65% cache hit, ~3 RPS average across 270 requests, zero failures):
+
+- TTFT median: 67.4ms, p90: 99.3ms, p95: 122.8ms, p99: 147.6ms
+- ITL median: 25.2ms, p90: 35.2ms, p95: 38.2ms
+- Request latency median: 1.74s
+
+With random prompts from GuideLLM (0% cache hit, at similar ~2.6 RPS):
+
+- TTFT median: 73.3ms
+- ITL median: 26.9ms
+- Request latency median: ~2.9s
+
+TTFT dropped by about 8% and ITL by about 6% with prefix caching active. The improvement is modest because our shared prefix was only 128 tokens. In production RAG systems where the system prompt is 512 or 1024 tokens, the savings would be significantly larger because more of the expensive prefill computation gets skipped.
+
+The request latency difference (1.74s vs 2.9s) is partly because the inference-perf run used a shorter output length (64 tokens vs 128 tokens in the GuideLLM run), so the numbers are not directly comparable on that metric. The TTFT and ITL comparisons are valid because those measure per-token timing independent of total output length.
 
 The inference-perf config and Job manifest are in our repository at [manifests/06-inference-perf-shared-prefix-config.yml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/06-inference-perf-shared-prefix-config.yml) and [manifests/07-inference-perf-job.yaml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/07-inference-perf-job.yaml).
 
