@@ -5,7 +5,7 @@ title: Benchmarking Prefill/Decode Disaggregation on OpenShift AI with GuideLLM
 
 # Benchmarking Prefill/Decode Disaggregation on OpenShift AI with GuideLLM
 
-You've deployed your LLM on OpenShift AI. The inference pods are running. You can curl it. But how do you know if the setup is actually performing well? How do you find the sweet spot between latency and throughput? And if you're using Prefill/Decode disaggregation, where prompt processing and token generation run on separate pods, is the intelligent router actually doing its job?
+We have deployed our LLM on OpenShift AI. The inference pods are running. We can curl it. But how do we know if the setup is actually performing well? How do we find the sweet spot between latency and throughput? And with Prefill/Decode disaggregation, where prompt processing and token generation run on separate pods, is the intelligent router actually doing its job?
 
 This blog walks through everything we did to benchmark an llm-d deployment with P/D disaggregation on ROSA, using GuideLLM to stress-test 7 different load profiles, prove EPP intelligent routing, and extract actionable performance data.
 
@@ -112,7 +112,7 @@ Synchronous sends one request at a time. It waits for the full response before s
 
 Concurrent keeps exactly N requests in flight at all times. When one completes, the next is sent immediately. We tested N=4 and N=16. Use --profile concurrent --rate 4.
 
-Throughput fires requests as fast as possible with no rate limiting. This finds your system's ceiling, the maximum requests per second before everything degrades. Use --profile throughput --rate 64.
+Throughput fires requests as fast as possible with no rate limiting. This finds the system's ceiling, the maximum requests per second before everything degrades. Use --profile throughput --rate 64.
 
 Constant sends exactly N requests per second, evenly spaced. This simulates a predictable, steady workload. Use --profile constant --rate 5.
 
@@ -150,7 +150,7 @@ The sweep profile makes the sweet spot visible. TTFT stays under 100ms up to abo
 - At 15.8 req/s: TTFT 115.9ms, ITL 47.0ms
 - At 18.0 req/s (max): TTFT 134.6ms, ITL 57.4ms
 
-For this model on this hardware, 7-9 RPS gives you good throughput with acceptable latency. Beyond that, you're trading user experience for raw throughput.
+For this model on this hardware, 7-9 RPS gives good throughput with acceptable latency. Beyond that, we are trading user experience for raw throughput.
 
 At the same target rate of 5 req/s, Poisson generated more total requests (335 vs 281) but with higher median TTFT (85.9ms vs 75.2ms). The bursty arrival pattern creates momentary queuing spikes, which is exactly what real traffic does.
 
@@ -254,13 +254,13 @@ EPP pod (port 9090/HTTP)
 
 Two dashboards cover the full stack. The first is vLLM Latency, Throughput, and Cache with 13 panels showing request latency (p50/p95/p99), TTFT, ITL, running/pending requests, KV cache usage, and token throughput. The second is EPP Routing and Pool Health showing request rate by model, routing decision duration, ready pod count, and average queue size.
 
-One important detail: the PodMonitor relabels vLLM metrics from vllm:* to kserve_vllm:*. If your Grafana dashboard queries use the vllm_ prefix and show no data, this is likely why.
+One important detail: the PodMonitor relabels vLLM metrics from vllm:* to kserve_vllm:*. If the Grafana dashboard queries use the vllm_ prefix and show no data, this is likely why.
 
 The full observability setup (Grafana Operator, ServiceAccount, RBAC, datasource, dashboards) is covered in our [companion blog post](https://github.com/nirjhar17/llm-d-observability-openshift).
 
 ## Lessons Learned
 
-1. Target the Gateway, not the pods. If you point GuideLLM directly at a vLLM pod, you bypass EPP entirely. The EPP dashboard shows nothing, and you're not testing the real request path.
+1. Target the Gateway, not the pods. If we point GuideLLM directly at a vLLM pod, we bypass EPP entirely. The EPP dashboard shows nothing, and we are not testing the real request path.
 
 2. EPP doesn't log per-request routing decisions. At the default INFO level, EPP only logs pod discovery and startup events. To prove routing, use metrics (Prometheus endpoints on the EPP and vLLM pods) and request distribution analysis.
 
@@ -278,7 +278,7 @@ All manifests, benchmark job definitions, and the parse script are in our reposi
 
 > Repository: [github.com/nirjhar17/llm-d-observability-openshift](https://github.com/nirjhar17/llm-d-observability-openshift)
 
-You'll need an OpenShift cluster with RHOAI and GPU nodes, a model deployed via LLMInferenceService with P/D disaggregation, User Workload Monitoring enabled, and the Grafana Operator installed for dashboards.
+To reproduce this, we need an OpenShift cluster with RHOAI and GPU nodes, a model deployed via LLMInferenceService with P/D disaggregation, User Workload Monitoring enabled, and the Grafana Operator installed for dashboards.
 
 The benchmark jobs can be applied with:
 
