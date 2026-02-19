@@ -369,27 +369,19 @@ python3 parse_benchmarks.py
 python3 parse_benchmarks.py --csv > all-benchmarks.csv
 ```
 
+## Before P/D Disaggregation
+
+Before enabling P/D disaggregation, we ran the same GuideLLM sweep benchmark against a standard KServe deployment of the same Qwen3-0.6B model. That benchmark targeted the vLLM workload service directly with no EPP routing.
+
+The results tell the story. Without P/D, the system maxed out at 8.53 RPS with a saturation point around 5-6 RPS. With P/D disaggregation and EPP routing, maximum throughput reached 18.0 RPS and the saturation point moved up to 7-9 RPS. That is a 2x improvement in throughput ceiling.
+
+At low load, the non-P/D setup had a faster baseline TTFT (32ms vs 63ms) because there is no EPP routing overhead. But under real production load, the P/D setup maintains sub-100ms TTFT all the way to 9 RPS, while the non-P/D setup was already degrading at 5-6 RPS. Token generation speed (ITL) was nearly identical in both setups at roughly 20ms.
+
+The full walkthrough of that first benchmark, including how to read the sweep report and what each metric means, is covered in our earlier blog: [Exploring GuideLLM: Benchmarking a Live LLM on OpenShift](https://medium.com/@jajodia.nirjhar/exploring-guidellm-benchmarking-a-live-llm-on-openshift-ccc2d0841794).
+
 ## Observability Stack
 
-The benchmarks are more useful when you can see what's happening inside the cluster during the run. We set up Grafana connected to OpenShift's User Workload Monitoring (UWM) Prometheus via Thanos Querier.
-
-The metrics pipeline flows like this:
-
-```
-vLLM pods (port 8000/HTTPS)
-  → UWM Prometheus (PodMonitor)
-  → Thanos Querier → Grafana
-
-EPP pod (port 9090/HTTP)
-  → UWM Prometheus (ServiceMonitor)
-  → Thanos Querier → Grafana
-```
-
-Two dashboards cover the full stack. The first is vLLM Latency, Throughput, and Cache with 13 panels showing request latency (p50/p95/p99), TTFT, ITL, running/pending requests, KV cache usage, and token throughput. The second is EPP Routing and Pool Health showing request rate by model, routing decision duration, ready pod count, and average queue size.
-
-One important detail: the PodMonitor relabels vLLM metrics from vllm:* to kserve_vllm:*. If the Grafana dashboard queries use the vllm_ prefix and show no data, this is likely why.
-
-The full observability setup (Grafana Operator, ServiceAccount, RBAC, datasource, dashboards) is covered in our [companion blog post](https://github.com/nirjhar17/llm-d-observability-openshift).
+The benchmarks give us point-in-time results, but to see what is happening inside the cluster during the benchmark run, we set up Grafana with Prometheus dashboards for both vLLM and EPP metrics. The full observability setup, including Grafana Operator installation, RBAC, datasource configuration, and pre-built dashboards, is covered in our [companion observability blog](https://github.com/nirjhar17/llm-d-observability-openshift).
 
 ## Reproducing This
 
