@@ -369,20 +369,6 @@ python3 parse_benchmarks.py
 python3 parse_benchmarks.py --csv > all-benchmarks.csv
 ```
 
-## Key Syntax Gotcha
-
-GuideLLM v0.5.0 uses --profile and --rate as separate arguments. This catches people:
-
-```
-# WRONG -- will fail
---profile "concurrent:4"
-
-# CORRECT -- separate arguments
---profile concurrent --rate 4
-```
-
-This applies to concurrent, throughput, constant, and poisson profiles. Only synchronous and sweep don't need --rate.
-
 ## Observability Stack
 
 The benchmarks are more useful when you can see what's happening inside the cluster during the run. We set up Grafana connected to OpenShift's User Workload Monitoring (UWM) Prometheus via Thanos Querier.
@@ -404,20 +390,6 @@ Two dashboards cover the full stack. The first is vLLM Latency, Throughput, and 
 One important detail: the PodMonitor relabels vLLM metrics from vllm:* to kserve_vllm:*. If the Grafana dashboard queries use the vllm_ prefix and show no data, this is likely why.
 
 The full observability setup (Grafana Operator, ServiceAccount, RBAC, datasource, dashboards) is covered in our [companion blog post](https://github.com/nirjhar17/llm-d-observability-openshift).
-
-## Lessons Learned
-
-1. Target the Gateway, not the pods. If we point GuideLLM directly at a vLLM pod, we bypass EPP entirely. The EPP dashboard shows nothing, and we are not testing the real request path.
-
-2. EPP doesn't log per-request routing decisions. At the default INFO level, EPP only logs pod discovery and startup events. To prove routing, use metrics (Prometheus endpoints on the EPP and vLLM pods) and request distribution analysis.
-
-3. Don't manually patch EPP deployments. The LLMInferenceService controller manages the EPP deployment and reverts manual changes. Any configuration changes must go through the LLMInferenceService spec.
-
-4. Standalone Prometheus can be misleading. We initially deployed a manual Prometheus instance that was scraping the wrong namespace. OpenShift's UWM Prometheus was already scraping all the right targets via ServiceMonitor and PodMonitor CRs. Check what you already have before deploying more infrastructure.
-
-5. Sweep is the single most useful profile. If you only have time to run one benchmark, run sweep. It gives you the baseline, the ceiling, and 8 data points in between. The HTML report for sweep is also the most visually informative.
-
-6. The JSON files contain more data than the HTML shows. Single-profile HTML reports show a simplified view. The JSON always has the full metrics including TTFT, ITL, percentiles, and per-request timings. Use the CSV or Python SDK to extract what the HTML doesn't display.
 
 ## Reproducing This
 
