@@ -339,35 +339,9 @@ The EPP uses three scoring plugins configured in the EndpointPickerConfig:
 
 Prefix cache gets the highest weight because a cache hit saves the entire prefill phase, a significant latency reduction.
 
-## Understanding GuideLLM Output Formats
+## GuideLLM Output Formats
 
-GuideLLM generates four output formats. Choosing the right one matters.
-
-The HTML report opens in any browser and contains visual charts of latency distributions and throughput behavior. Good for sharing with teammates who don't want to parse data. One caveat: for single-profile runs like sync or concurrent, the HTML shows a summary view. The sweep HTML is the most useful because it plots TTFT and ITL across 10 rate points as a trend chart. Use --outputs "results.html".
-
-The JSON file is the authoritative record. It contains everything: full configuration, per-request timings, all percentiles from p01 through p999, variance, and standard deviation. This is what you load programmatically using GuideLLM's GenerativeBenchmarksReport class. Use --outputs "results.json".
-
-The YAML file has the same data as JSON, formatted as YAML. Easier to skim in a text editor. You can generate it at benchmark time with --outputs "results.yaml" or convert existing JSON afterward:
-
-```
-import json, yaml
-data = json.load(open('results.json'))
-yaml.dump(data, open('results.yaml', 'w'),
-  default_flow_style=False, sort_keys=False)
-```
-
-The CSV file is a compact tabular view with the fields most commonly used for reporting: throughput, latency percentiles, token counts, and rate. Opens directly in Excel or Google Sheets. Use --outputs "results.csv".
-
-You can request all formats at once: --outputs "results.json,results.yaml,results.csv,results.html"
-
-In practice, stakeholders use HTML for visual charts. Engineers use CSV for spreadsheet comparisons. CI/CD pipelines use JSON with the Python SDK for automated pass/fail thresholds. Nobody reads the raw JSON or YAML manually, that's what the CSV and HTML are for.
-
-We also built a standalone parse_benchmarks.py script that auto-discovers all GuideLLM JSON files in a folder and produces a consolidated metrics table or CSV:
-
-```
-python3 parse_benchmarks.py
-python3 parse_benchmarks.py --csv > all-benchmarks.csv
-```
+GuideLLM generates four output formats: HTML for visual charts, JSON for the full authoritative record with all percentiles and per-request timings, YAML for human-readable inspection, and CSV for spreadsheets. Use --outputs to request any combination, for example: --outputs "results.json,results.html,results.csv"
 
 ## Comparing With and Without P/D Disaggregation
 
