@@ -151,15 +151,24 @@ data:
           replicas: 4
 ```
 
-Then we patched the ClusterPolicy to reference this config:
+Then we patched the ClusterPolicy to reference this ConfigMap. The ClusterPolicy is a cluster-scoped CR managed by the NVIDIA GPU Operator. It controls how the device plugin, driver, and toolkit behave across all GPU nodes. We need to tell it where our time-slicing config lives:
 
 ```
-spec:
-  devicePlugin:
-    config:
-      name: device-plugin-config
-      default: ""
+oc patch clusterpolicy gpu-cluster-policy --type=merge -p '{
+  "spec": {
+    "devicePlugin": {
+      "config": {
+        "name": "device-plugin-config",
+        "default": ""
+      }
+    }
+  }
+}'
 ```
+
+The "name" field points to the ConfigMap we just created. The "default" field controls what happens on GPU nodes that do not have the nvidia.com/device-plugin.config label. Setting it to an empty string means those nodes get no time-slicing. If we set it to "Tesla-T4", all GPU nodes would get time-slicing automatically regardless of labels. We chose the explicit label approach so we have per-node control.
+
+After applying the patch, the GPU Operator restarts the device plugin DaemonSet pods. Once they come back, any node with the matching label will advertise 4 nvidia.com/gpu instead of 1.
 
 Finally, each GPU node needs the label nvidia.com/device-plugin.config=Tesla-T4 to activate time-slicing. We set this in the ROSA machinepool definition so every new node gets it automatically:
 
