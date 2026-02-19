@@ -401,7 +401,51 @@ data:
     output_len: 64
 ```
 
-This generates 5 distinct system prompts, each 128 tokens long, with 20 unique user questions per prompt. The target URL goes through the Gateway and EPP, not directly to vLLM. We ran this as a Kubernetes Job in the same guidellm-lab namespace, using the image quay.io/inference-perf/inference-perf:latest with the config mounted via a ConfigMap.
+This generates 5 distinct system prompts, each 128 tokens long, with 20 unique user questions per prompt. The target URL goes through the Gateway and EPP, not directly to vLLM.
+
+We saved this config as a file and created a ConfigMap from it:
+
+```
+oc create configmap inference-perf-config \
+  --from-file=06-inference-perf-shared-prefix-config.yml \
+  -n guidellm-lab
+```
+
+Then we ran it as a Kubernetes Job that mounts the ConfigMap and passes the config file to the inference-perf CLI:
+
+```
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: inference-perf-shared-prefix
+  namespace: guidellm-lab
+spec:
+  template:
+    spec:
+      containers:
+      - name: inference-perf
+        image: quay.io/inference-perf/inference-perf:latest
+        command: ["inference-perf"]
+        args:
+        - "--config_file"
+        - "/etc/config/06-inference-perf-shared-prefix-config.yml"
+        env:
+        - name: HOME
+          value: /tmp
+        - name: HF_HOME
+          value: /tmp/hf_home
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+          readOnly: true
+      restartPolicy: Never
+      volumes:
+      - name: config-volume
+        configMap:
+          name: inference-perf-config
+```
+
+The HOME and HF_HOME env vars are needed because the container's default home directory is not writable, and the tokenizer download requires a cache directory.
 
 Before starting the job, we recorded the prefix cache metrics on all 4 pods. They were all at zero (fresh pods, no prior requests).
 
