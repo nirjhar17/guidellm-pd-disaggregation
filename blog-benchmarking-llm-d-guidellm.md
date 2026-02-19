@@ -279,7 +279,7 @@ Here are the results across all profiles. TTFT is Time To First Token, how long 
 | Throughput (64) | 758 | 12.63 | 118.3ms | 38.2ms | 4.87s |
 | Constant (5/s) | 281 | 4.68 | 75.2ms | 28.9ms | 3.69s |
 | Poisson (5/s) | 335 | 5.58 | 85.9ms | 29.7ms | 3.79s |
-| Sweep (auto) | 23-1081 | 0.37-15.58 | 63.3-134.6ms | 20.4-57.4ms | -- |
+| Sweep (auto) | 23-1081 | 0.38-12.91 | 63.3-134.6ms | 20.4-57.4ms | 2.62s-23.47s |
 
 ## What the Numbers Tell Us
 
