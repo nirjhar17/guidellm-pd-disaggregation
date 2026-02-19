@@ -7,7 +7,13 @@ title: Benchmarking Prefill/Decode Disaggregation on OpenShift AI with GuideLLM
 
 We have deployed our LLM on OpenShift AI. The inference pods are running. We can curl it. But how do we know if the setup is actually performing well? How do we find the sweet spot between latency and throughput? And with Prefill/Decode disaggregation, where prompt processing and token generation run on separate pods, is the intelligent router actually doing its job?
 
-This blog walks through everything we did to benchmark an llm-d deployment with P/D disaggregation on ROSA, using GuideLLM to stress-test 7 different load profiles, prove EPP intelligent routing, and extract actionable performance data.
+Without llm-d, a standard LLM deployment runs prefill and decode together on the same pod. Every request competes for the same GPU, the same memory, and the same compute. Prefill (processing the full prompt) is compute-heavy, while decode (generating tokens one at a time) is memory-bound. Bundling them together means neither phase runs at its best, and scaling means duplicating everything.
+
+llm-d changes this by disaggregating prefill and decode into separate pods that can scale independently. Prefill pods can be optimized for throughput, decode pods for latency, and each can be scaled based on actual demand. This is what makes LLM inference truly scalable on Kubernetes.
+
+The intelligent routing comes from the EPP, the Endpoint Picker Pod. The EPP sits between the gateway and the model-serving pods, scoring every available pod on queue depth, KV cache utilization, and prefix cache hits before routing each request to the best candidate. This is not round-robin load balancing. This is inference-aware scheduling that understands the internal state of each vLLM instance.
+
+We have this setup running on our ROSA cluster, and now the question is: how does it actually perform under pressure? This blog walks through our benchmarking session where we used GuideLLM to run 7 different load profiles, each simulating a different type of traffic pattern, to understand how latency and throughput behave as we increase the load.
 
 ## Our Setup
 
