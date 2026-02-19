@@ -166,7 +166,7 @@ oc patch clusterpolicy gpu-cluster-policy --type=merge -p '{
 }'
 ```
 
-The "name" field points to the ConfigMap we just created. The "default" field controls what happens on GPU nodes that do not have the nvidia.com/device-plugin.config label. Setting it to an empty string means those nodes get no time-slicing. If we set it to "Tesla-T4", all GPU nodes would get time-slicing automatically regardless of labels. We chose the explicit label approach so we have per-node control.
+This patch does two things. It tells the GPU Operator to read time-slicing settings from our ConfigMap called device-plugin-config. It also sets the default to empty, which means a GPU node only gets time-slicing if we explicitly label it. Without the label, the node keeps its original single-GPU behavior. This gives us per-node control over which GPUs are shared.
 
 After applying the patch, the GPU Operator restarts the device plugin DaemonSet pods. Once they come back, any node with the matching label will advertise 4 nvidia.com/gpu instead of 1.
 
