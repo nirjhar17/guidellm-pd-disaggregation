@@ -178,9 +178,24 @@ rosa edit machinepool gpu \
   --labels="nvidia.com/device-plugin.config=Tesla-T4"
 ```
 
-Time-slicing does not partition VRAM. All pods sharing a GPU see the full 16 GiB. That is why we set gpu-memory-utilization to 0.40 per pod. Two pods at 40% each uses 12.8 GiB and leaves headroom. Setting it to 85% would cause an OOM crash because 85% plus 85% exceeds the physical 16 GiB.
+There is one critical thing to understand about GPU time-slicing. It does not split VRAM into isolated partitions. Every pod sharing a GPU can see and allocate from the full 16 GiB. There is no memory fence between them. This means if two pods each try to use 85% of VRAM, they would attempt to allocate 13.6 GiB plus 13.6 GiB, which is 27.2 GiB on a 16 GiB card. That causes an out-of-memory crash.
 
-We also had to tune max-model-len from 4096 to 2048 and max-num-seqs from 256 to 64 because these parameters directly affect KV cache memory allocation inside the 40% VRAM budget.
+To prevent this, we control how much VRAM each pod is allowed to use through vLLM's gpu-memory-utilization setting. We set it to 0.40 (40%) per pod inside the VLLM_ADDITIONAL_ARGS in the LLMInferenceService YAML we showed earlier:
+
+```
+env:
+- name: VLLM_ADDITIONAL_ARGS
+  value: >-
+    --dtype=half
+    --max-model-len=2048
+    --max-num-seqs=64
+    --gpu-memory-utilization=0.40
+    --enforce-eager
+```
+
+With two pods on one GPU at 40% each, they use 6.4 GiB plus 6.4 GiB, which is 12.8 GiB total. That leaves 3.2 GiB of headroom on the 16 GiB T4.
+
+The other two parameters in that block also affect memory. max-model-len controls the maximum sequence length, and max-num-seqs controls how many requests can run concurrently. Both directly determine how large the KV cache grows in GPU memory. We tuned them down from 4096/256 to 2048/64 so the KV cache fits comfortably within each pod's 40% VRAM budget.
 
 All infrastructure manifests are in our [repository](https://github.com/nirjhar17/guidellm-pd-disaggregation/tree/main/manifests).
 
