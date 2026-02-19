@@ -369,19 +369,29 @@ python3 parse_benchmarks.py
 python3 parse_benchmarks.py --csv > all-benchmarks.csv
 ```
 
-## Before P/D Disaggregation
+## Comparing With and Without P/D Disaggregation
 
-Before enabling P/D disaggregation, we ran the same GuideLLM sweep benchmark against a standard KServe deployment of the same Qwen3-0.6B model. That benchmark targeted the vLLM workload service directly with no EPP routing.
+Before enabling P/D disaggregation, we ran the same GuideLLM sweep benchmark against a standard KServe deployment of the same Qwen3-0.6B model on the same hardware. That benchmark targeted the vLLM workload service directly with no EPP routing and no prefill/decode split. The full walkthrough of that benchmark is in our earlier blog: [Exploring GuideLLM: Benchmarking a Live LLM on OpenShift](https://medium.com/@jajodia.nirjhar/exploring-guidellm-benchmarking-a-live-llm-on-openshift-ccc2d0841794).
 
-The results tell the story. Without P/D, the system maxed out at 8.53 RPS with a saturation point around 5-6 RPS. With P/D disaggregation and EPP routing, maximum throughput reached 18.0 RPS and the saturation point moved up to 7-9 RPS. That is a 2x improvement in throughput ceiling.
+Here is what changed when we enabled P/D disaggregation.
 
-At low load, the non-P/D setup had a faster baseline TTFT (32ms vs 63ms) because there is no EPP routing overhead. But under real production load, the P/D setup maintains sub-100ms TTFT all the way to 9 RPS, while the non-P/D setup was already degrading at 5-6 RPS. Token generation speed (ITL) was nearly identical in both setups at roughly 20ms.
+Maximum throughput went from 8.53 RPS to 18.0 RPS. That is a 2.1x improvement. The standard deployment hit its ceiling with a single vLLM pod handling both prefill and decode on one GPU. With P/D, the work is split across 4 pods (2 prefill + 2 decode) on 2 GPUs, and the EPP routes each request to the least loaded pod.
 
-The full walkthrough of that first benchmark, including how to read the sweep report and what each metric means, is covered in our earlier blog: [Exploring GuideLLM: Benchmarking a Live LLM on OpenShift](https://medium.com/@jajodia.nirjhar/exploring-guidellm-benchmarking-a-live-llm-on-openshift-ccc2d0841794).
+The saturation point shifted from 5-6 RPS to 7-9 RPS. In the standard deployment, the sweep graph showed latency exploding around 5-6 RPS, the "knee" where user experience degrades. With P/D disaggregation, that knee moved to 7-9 RPS. The "green zone" where latency stays flat and predictable is significantly wider.
 
-## Observability Stack
+Baseline TTFT is higher with P/D: 63ms vs 32ms at low load. This is the routing overhead. Every request now travels through the Envoy Gateway, then to the EPP which scores all available pods on queue depth, KV cache utilization, and prefix cache hits, then forwards to the selected pod. At idle, that extra hop adds about 30ms. But this trade-off pays for itself under load because the standard deployment was already at degraded TTFT by the time it hit 6 RPS, while the P/D setup maintains sub-100ms TTFT all the way to 9 RPS.
 
-The benchmarks give us point-in-time results, but to see what is happening inside the cluster during the benchmark run, we set up Grafana with Prometheus dashboards for both vLLM and EPP metrics. The full observability setup, including Grafana Operator installation, RBAC, datasource configuration, and pre-built dashboards, is covered in our [companion observability blog](https://github.com/nirjhar17/llm-d-observability-openshift).
+Inter-Token Latency was nearly identical in both setups: 19.74ms without P/D vs 20.4ms with P/D at low load. This makes sense because ITL is determined by the vLLM engine and GPU speed during the decode phase, not the routing layer. The EPP only routes the initial request. Once token generation starts, it streams directly from the decode pod to the client.
+
+Request latency at low load: 2.54s without P/D vs 2.74s with P/D. The 200ms difference comes from the same routing overhead that affects TTFT. At high load, this gap reverses because the P/D setup handles queuing and contention much better with 4 pods instead of 1.
+
+We also checked the vLLM pod logs during the P/D benchmark and found prefix cache hit rate was 0% across all pods. This is expected because GuideLLM generates random synthetic prompts with no shared prefixes. In a production chatbot or RAG workload where requests share a common system prompt, the prefix-cache-scorer (the highest weighted EPP plugin at weight 3) would start routing requests to pods that already cached those prefixes, further reducing TTFT.
+
+KV cache utilization peaked at 31% during the heaviest sweep loads, well within our 40% VRAM budget. No pod hit the ceiling, no requests waited in queue, and no OOMs occurred. The headroom means this setup can handle burst traffic beyond the sustained maximum.
+
+## Observability
+
+To see what is happening inside the cluster during benchmark runs, we set up Grafana with Prometheus dashboards for both vLLM and EPP metrics. The full observability setup, including Grafana Operator installation, RBAC, datasource configuration, and pre-built dashboards, is covered in our [companion observability blog](https://github.com/nirjhar17/llm-d-observability-openshift).
 
 ## Reproducing This
 
