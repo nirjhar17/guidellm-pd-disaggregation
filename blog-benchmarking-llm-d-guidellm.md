@@ -359,9 +359,77 @@ Inter-Token Latency was nearly identical in both setups: 19.74ms without P/D vs 
 
 Request latency at low load: 2.54s without P/D vs 2.74s with P/D. The 200ms difference comes from the same routing overhead that affects TTFT. At high load, this gap reverses because the P/D setup handles queuing and contention much better with 4 pods instead of 1.
 
-We also checked the vLLM pod logs during the P/D benchmark and found prefix cache hit rate was 0% across all pods. This is expected because GuideLLM generates random synthetic prompts with no shared prefixes. In a production chatbot or RAG workload where requests share a common system prompt, the prefix-cache-scorer (the highest weighted EPP plugin at weight 3) would start routing requests to pods that already cached those prefixes, further reducing TTFT.
+One important caveat with these GuideLLM results. GuideLLM generates random synthetic prompts for every request. No two prompts share a prefix. This means the prefix cache, which is the highest weighted scoring plugin in the EPP (weight 3), was never utilized. We checked the vLLM pod logs during the benchmark and confirmed prefix cache hit rate was 0% across all 4 pods. The throughput improvement we saw came entirely from load distribution across 4 pods and the queue-scorer and kv-cache-utilization-scorer plugins. The prefix-cache-scorer had nothing to work with.
 
 KV cache utilization peaked at 31% during the heaviest sweep loads, well within our 40% VRAM budget. No pod hit the ceiling, no requests waited in queue, and no OOMs occurred. The headroom means this setup can handle burst traffic beyond the sustained maximum.
+
+## Proving Prefix Cache with Shared Prompts
+
+The GuideLLM comparison above showed throughput and latency gains, but it did not exercise the prefix cache. In production, real workloads like chatbots and RAG systems send many requests that share the same system prompt. To prove the prefix cache actually works, we needed a different tool.
+
+We used [inference-perf](https://github.com/kubernetes-sigs/inference-perf), a benchmarking tool from the Kubernetes SIG Serving project that is also used by the [llm-d-benchmark](https://github.com/llm-d/llm-d-benchmark) framework. Unlike GuideLLM, inference-perf has a built-in shared_prefix data generator that creates requests where multiple prompts share the same system prompt prefix with only the user question varying.
+
+Here is the config we used:
+
+```
+load:
+  type: constant
+  stages:
+  - rate: 1
+    duration: 30
+  - rate: 3
+    duration: 30
+  - rate: 5
+    duration: 30
+api:
+  type: completion
+  streaming: true
+server:
+  type: vllm
+  model_name: Qwen/Qwen3-0.6B
+  base_url: http://<gateway-url>/my-first-model/qwen3-0-6b
+  ignore_eos: true
+tokenizer:
+  pretrained_model_name_or_path: Qwen/Qwen3-0.6B
+data:
+  type: shared_prefix
+  shared_prefix:
+    num_unique_system_prompts: 5
+    num_users_per_system_prompt: 20
+    system_prompt_len: 128
+    question_len: 64
+    output_len: 64
+```
+
+This generates 5 distinct system prompts, each 128 tokens long, with 20 unique user questions per prompt. The target URL goes through the Gateway and EPP, not directly to vLLM. We ran this as a Kubernetes Job in the same guidellm-lab namespace, using the image quay.io/inference-perf/inference-perf:latest with the config mounted via a ConfigMap.
+
+Before starting the job, we recorded the prefix cache metrics on all 4 pods. They were all at zero (fresh pods, no prior requests).
+
+After the 3-stage run completed, here are the results:
+
+- Decode pod 1: 27,581 tokens queried, 17,888 hits, 64.9% hit rate
+- Decode pod 2: 27,572 tokens queried, 18,336 hits, 66.5% hit rate
+- Prefill pod 1: 27,593 tokens queried, 17,984 hits, 65.1% hit rate
+- Prefill pod 2: 27,551 tokens queried, 18,112 hits, 65.7% hit rate
+
+The vLLM engine logs confirmed it in real time:
+
+```
+Engine 000: Prefix cache hit rate: 64.9%   (Decode pod 1)
+Engine 000: Prefix cache hit rate: 66.5%   (Decode pod 2)
+Engine 000: Prefix cache hit rate: 65.2%   (Prefill pod 1)
+Engine 000: Prefix cache hit rate: 65.7%   (Prefill pod 2)
+```
+
+Roughly 65% of all queried tokens were served from cache. That means 65% of the prefill computation was skipped entirely. The KV entries for the shared system prompt were computed once and then reused for every subsequent request with the same prefix.
+
+The load was also evenly distributed across all 4 pods (approximately 27,550 queries each), confirming the EPP was distributing requests properly even while the prefix-cache-scorer was actively influencing routing decisions.
+
+KV cache usage stayed under 3% throughout the run. Because cached prefixes are reused rather than reallocated, memory consumption stays flat even as more requests arrive. This is the efficiency gain that makes prefix caching valuable at scale.
+
+Compare this to the GuideLLM benchmarks with random prompts: 0% cache hit rate, 31% KV cache usage at peak. Same model, same hardware, same EPP configuration. The only difference was the workload pattern.
+
+The inference-perf config and Job manifest are in our repository at [manifests/06-inference-perf-shared-prefix-config.yml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/06-inference-perf-shared-prefix-config.yml) and [manifests/07-inference-perf-job.yaml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/07-inference-perf-job.yaml).
 
 ## Observability
 
