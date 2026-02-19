@@ -281,27 +281,9 @@ Here are the results across all profiles. TTFT is Time To First Token, how long 
 | Poisson (5/s) | 335 | 5.58 | 85.9ms | 29.7ms | 3.79s |
 | Sweep (auto) | 23-1081 | 0.38-12.91 | 63.3-134.6ms | 20.4-57.4ms | 2.62s-23.47s |
 
-## What the Numbers Tell Us
+The seven profiles together give three numbers that matter for production. The latency floor is 54ms TTFT at Concurrent(4), the best a user will experience. The sweet spot is 7-9 RPS, the maximum throughput where TTFT stays under 100ms and the system feels responsive. The ceiling is 12.63 RPS in throughput mode, where TTFT and ITL both double compared to idle.
 
-Concurrent(4) achieves the lowest TTFT at 54.2ms median, even better than synchronous. With 4 requests in flight, the prefill pods stay warm and GPU utilization is steady without being overloaded.
-
-At 12.63 RPS in throughput mode, the system handled 758 requests in 60 seconds with only 1 error. But TTFT doubled to 118ms and ITL nearly doubled to 38ms. That's the throughput ceiling.
-
-The sweep profile makes the sweet spot visible. TTFT stays under 100ms up to about 9 RPS. Beyond that, latency starts climbing steeply:
-
-- At sync (0.37 req/s): TTFT 63.3ms, ITL 20.4ms
-- At 2.6 req/s: TTFT 73.3ms, ITL 26.9ms
-- At 4.8 req/s: TTFT 78.2ms, ITL 28.6ms
-- At 7.0 req/s: TTFT 82.3ms, ITL 29.7ms
-- At 9.2 req/s: TTFT 87.2ms, ITL 31.9ms
-- At 11.4 req/s: TTFT 94.7ms, ITL 35.6ms
-- At 13.6 req/s: TTFT 102.7ms, ITL 39.8ms
-- At 15.8 req/s: TTFT 115.9ms, ITL 47.0ms
-- At 18.0 req/s (max): TTFT 134.6ms, ITL 57.4ms
-
-For this model on this hardware, 7-9 RPS gives good throughput with acceptable latency. Beyond that, we are trading user experience for raw throughput.
-
-At the same target rate of 5 req/s, Poisson generated more total requests (335 vs 281) but with higher median TTFT (85.9ms vs 75.2ms). The bursty arrival pattern creates momentary queuing spikes, which is exactly what real traffic does.
+For capacity planning, use the Poisson results, not Constant. At the same 5 RPS target, Poisson showed 14% worse TTFT (85.9ms vs 75.2ms) because real traffic arrives in bursts that create momentary queue spikes. If this model serves real users, plan for 7 RPS per set of 4 pods with headroom for bursts.
 
 ## Proving EPP Intelligent Routing
 
