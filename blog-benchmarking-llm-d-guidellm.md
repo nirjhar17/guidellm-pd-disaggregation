@@ -271,13 +271,15 @@ Sweep automatically runs a synchronous baseline, a throughput ceiling test, then
 
 Here are the results across all profiles. TTFT is Time To First Token, how long until the model starts responding. ITL is Inter-Token Latency, how fast tokens stream after the first one.
 
-- Synchronous: 22 requests, 0.35 RPS, TTFT median 64.2ms, ITL median 21.4ms, latency median 2.74s
-- Concurrent (4): 79 requests, 1.30 RPS, TTFT median 54.2ms, ITL median 23.7ms, latency median 3.02s
-- Concurrent (16): 259 requests, 4.30 RPS, TTFT median 75.0ms, ITL median 28.2ms, latency median 3.60s
-- Throughput (64): 758 requests, 12.63 RPS, TTFT median 118.3ms, ITL median 38.2ms, latency median 4.87s
-- Constant (5/s): 281 requests, 4.68 RPS, TTFT median 75.2ms, ITL median 28.9ms, latency median 3.69s
-- Poisson (5/s): 335 requests, 5.58 RPS, TTFT median 85.9ms, ITL median 29.7ms, latency median 3.79s
-- Sweep (auto): 23-1081 requests, 0.37-15.58 RPS, TTFT median 63.3-134.6ms, ITL median 20.4-57.4ms
+| Profile | Requests | RPS | TTFT Median | ITL Median | Latency Median |
+|---|---|---|---|---|---|
+| Synchronous | 22 | 0.35 | 64.2ms | 21.4ms | 2.74s |
+| Concurrent (4) | 79 | 1.30 | 54.2ms | 23.7ms | 3.02s |
+| Concurrent (16) | 259 | 4.30 | 75.0ms | 28.2ms | 3.60s |
+| Throughput (64) | 758 | 12.63 | 118.3ms | 38.2ms | 4.87s |
+| Constant (5/s) | 281 | 4.68 | 75.2ms | 28.9ms | 3.69s |
+| Poisson (5/s) | 335 | 5.58 | 85.9ms | 29.7ms | 3.79s |
+| Sweep (auto) | 23-1081 | 0.37-15.58 | 63.3-134.6ms | 20.4-57.4ms | -- |
 
 ## What the Numbers Tell Us
 
