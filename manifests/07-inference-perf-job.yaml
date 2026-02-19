@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: inference-perf-shared-prefix
+  name: inference-perf-shared-prefix-v2
   namespace: guidellm-lab
   labels:
     app: inference-perf
@@ -19,17 +19,23 @@ spec:
         args: ["--config_file", "/etc/config/06-inference-perf-shared-prefix-config.yml"]
         env:
         - name: HOME
-          value: /tmp
+          value: /results
         - name: HF_HOME
           value: /tmp/hf_home
         - name: TRANSFORMERS_CACHE
           value: /tmp/hf_home
+        workingDir: /results
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
           readOnly: true
+        - name: results
+          mountPath: /results
       restartPolicy: Never
       volumes:
       - name: config-volume
         configMap:
           name: inference-perf-config
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results-pvc
