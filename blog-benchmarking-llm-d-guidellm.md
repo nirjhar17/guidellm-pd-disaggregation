@@ -46,17 +46,134 @@ The deployment uses Prefill/Decode disaggregation. Here's the request flow:
 
 The prefill pods receive the full prompt and process all tokens in parallel, building the KV cache. That cache is transferred to the decode pods, which generate output tokens one at a time. The EPP (Endpoint Picker) router scores every pod on queue depth, KV cache utilization, and prefix cache hits, then picks the best one for each request.
 
-## Getting Here Wasn't Trivial
+## The LLMInferenceService with P/D Disaggregation
 
-Before running a single benchmark, we had to solve several infrastructure problems.
+The core of our deployment is a single LLMInferenceService CR that defines both the prefill and decode pods, along with the EPP scheduler. Here is the YAML we used to deploy the model with P/D disaggregation:
 
-GPU time-slicing was needed to fit 2 pods per physical T4, exposing 1 GPU as 4 virtual slots via an NVIDIA ConfigMap. Since time-slicing shares VRAM rather than partitioning it, we had to set gpu-memory-utilization to 0.40 per pod to avoid OOM. Two pods at 40% each leaves headroom.
+```
+apiVersion: serving.kserve.io/v1alpha1
+kind: LLMInferenceService
+metadata:
+  name: qwen3-0-6b
+  namespace: my-first-model
+spec:
+  model:
+    name: Qwen/Qwen3-0.6B
+    uri: hf://Qwen/Qwen3-0.6B
 
-We also learned that max-model-len and max-num-seqs directly affect VRAM consumption through KV cache allocation. Dropping from 4096/256 to 2048/64 was necessary to fit within our 40% budget.
+  # Decode pods
+  replicas: 2
+  template:
+    containers:
+    - name: main
+      image: vllm/vllm-openai:v0.11.2
+      env:
+      - name: VLLM_ADDITIONAL_ARGS
+        value: >-
+          --dtype=half
+          --max-model-len=2048
+          --max-num-seqs=64
+          --gpu-memory-utilization=0.40
+          --enforce-eager
+      resources:
+        requests:
+          nvidia.com/gpu: "1"
+        limits:
+          nvidia.com/gpu: "1"
 
-ROSA's cluster autoscaler tried to remove our GPU nodes when we deleted deployments to recreate them, so we had to pin the machinepool to fixed replicas. And every new GPU node needs the time-slicing label in the machinepool definition, otherwise it comes up advertising 1 GPU instead of 4.
+  # Prefill pods
+  prefill:
+    replicas: 2
+    template:
+      containers:
+      - name: main
+        image: vllm/vllm-openai:v0.11.2
+        env:
+        - name: VLLM_ADDITIONAL_ARGS
+          value: >-
+            --dtype=half
+            --max-model-len=2048
+            --max-num-seqs=64
+            --gpu-memory-utilization=0.40
+            --enforce-eager
 
-The full infrastructure manifests and troubleshooting details are in our [companion repository](https://github.com/nirjhar17/llm-d-observability-openshift).
+  # EPP Scheduler with scoring plugins
+  router:
+    gateway: {}
+    route: {}
+    scheduler:
+      template:
+        containers:
+        - name: main
+          args:
+          - --config-text
+          - |
+            apiVersion: inference.networking.x-k8s.io/v1alpha1
+            kind: EndpointPickerConfig
+            plugins:
+            - type: queue-scorer
+            - type: kv-cache-utilization-scorer
+            - type: prefix-cache-scorer
+            schedulingProfiles:
+            - name: default
+              plugins:
+              - pluginRef: queue-scorer
+                weight: 2
+              - pluginRef: kv-cache-utilization-scorer
+                weight: 2
+              - pluginRef: prefix-cache-scorer
+                weight: 3
+```
+
+The spec.replicas controls the decode pod count, while spec.prefill.replicas controls prefill. The router section embeds the EPP scheduler configuration with the three scoring plugins. One YAML creates the entire disaggregated inference stack.
+
+The full manifest with all fields (nodeSelector, tolerations, resource limits, env vars) is available at [manifests/01-llminferenceservice-pd.yaml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/01-llminferenceservice-pd.yaml).
+
+## GPU Time-Slicing for Multi-Pod Per GPU
+
+With only 2 physical T4 GPUs and 4 model-serving pods needed, we had to configure GPU time-slicing. This exposes each physical GPU as 4 virtual GPU slots in Kubernetes.
+
+The first step was creating a ConfigMap in the NVIDIA GPU Operator namespace:
+
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: device-plugin-config
+  namespace: nvidia-gpu-operator
+data:
+  Tesla-T4: |-
+    version: v1
+    sharing:
+      timeSlicing:
+        resources:
+        - name: nvidia.com/gpu
+          replicas: 4
+```
+
+Then we patched the ClusterPolicy to reference this config:
+
+```
+spec:
+  devicePlugin:
+    config:
+      name: device-plugin-config
+      default: ""
+```
+
+Finally, each GPU node needs the label nvidia.com/device-plugin.config=Tesla-T4 to activate time-slicing. We set this in the ROSA machinepool definition so every new node gets it automatically:
+
+```
+rosa edit machinepool gpu \
+  --cluster=<cluster-id> \
+  --labels="nvidia.com/device-plugin.config=Tesla-T4"
+```
+
+Time-slicing does not partition VRAM. All pods sharing a GPU see the full 16 GiB. That is why we set gpu-memory-utilization to 0.40 per pod. Two pods at 40% each uses 12.8 GiB and leaves headroom. Setting it to 85% would cause an OOM crash because 85% plus 85% exceeds the physical 16 GiB.
+
+We also had to tune max-model-len from 4096 to 2048 and max-num-seqs from 256 to 64 because these parameters directly affect KV cache memory allocation inside the 40% VRAM budget.
+
+All infrastructure manifests are in our [repository](https://github.com/nirjhar17/guidellm-pd-disaggregation/tree/main/manifests).
 
 ## Why GuideLLM
 
@@ -282,7 +399,7 @@ The full observability setup (Grafana Operator, ServiceAccount, RBAC, datasource
 
 All manifests, benchmark job definitions, and the parse script are in our repository:
 
-> Repository: [github.com/nirjhar17/llm-d-observability-openshift](https://github.com/nirjhar17/llm-d-observability-openshift)
+> Repository: [github.com/nirjhar17/guidellm-pd-disaggregation](https://github.com/nirjhar17/guidellm-pd-disaggregation)
 
 To reproduce this, we need an OpenShift cluster with RHOAI and GPU nodes, a model deployed via LLMInferenceService with P/D disaggregation, User Workload Monitoring enabled, and the Grafana Operator installed for dashboards.
 
