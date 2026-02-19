@@ -475,29 +475,6 @@ The request latency difference (1.74s vs 2.9s) is partly because the inference-p
 
 The inference-perf config and Job manifest are in our repository at [manifests/06-inference-perf-shared-prefix-config.yml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/06-inference-perf-shared-prefix-config.yml) and [manifests/07-inference-perf-job.yaml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/07-inference-perf-job.yaml).
 
-## EPP Routing: Equal Distribution Regardless of Workload
-
-One question remained: does the EPP distribute requests equally across pods regardless of whether the prompts share prefixes or are completely random? To answer this definitively, we ran an isolated before/after experiment. We captured the vLLM Prometheus metrics on all 4 pods, ran a workload, then captured the metrics again and computed the delta per pod.
-
-We ran two back-to-back tests. First, inference-perf with 5 shared system prompts (270 requests over 90 seconds). Then, GuideLLM with random prompts at 5 RPS (282 requests over 60 seconds).
-
-| Test | Pod | Role | Requests | Cache Hits (tokens) | Cache Hit Rate |
-|------|-----|------|----------|--------------------:|---------------:|
-| **Shared prefix** | decode-1 | decode | 69 | 9,232 | 66.2% |
-| **Shared prefix** | decode-2 | decode | 67 | 8,896 | 65.9% |
-| **Shared prefix** | prefill-1 | prefill | 67 | 9,024 | 66.5% |
-| **Shared prefix** | prefill-2 | prefill | 67 | 8,896 | 65.9% |
-| **Random prompts** | decode-1 | decode | 70 | 0 | 0% |
-| **Random prompts** | decode-2 | decode | 71 | 0 | 0% |
-| **Random prompts** | prefill-1 | prefill | 71 | 0 | 0% |
-| **Random prompts** | prefill-2 | prefill | 70 | 0 | 0% |
-
-The request distribution is nearly identical in both cases: 69/67/67/67 for shared prefixes, 70/71/71/70 for random prompts. The maximum spread is 2 requests out of ~270.
-
-The difference is in what happens inside each pod. With shared prefixes, 66% of tokens were served from the local prefix cache. The EPP's prefix-cache-scorer (weight 3) routes requests with the same system prompt to the same pod, which is why every pod achieves a high hit rate. With random prompts, every prompt is unique, so there is nothing to cache and the hit rate is 0%.
-
-The EPP balances request counts equally through its queue-scorer (weight 2) and kv-cache-utilization-scorer (weight 2). The prefix-cache-scorer does not skew the distribution because with 5 prefixes across 4 pods, each pod handles 1-2 prefixes and the load naturally balances. What the prefix-cache-scorer does is ensure that when a request arrives with a known prefix, it goes to the pod that already has those KV entries in memory, avoiding redundant prefill computation.
-
 ## Observability
 
 To see what is happening inside the cluster during benchmark runs, we set up Grafana with Prometheus dashboards for both vLLM and EPP metrics. The full observability setup, including Grafana Operator installation, RBAC, datasource configuration, and pre-built dashboards, is covered in our [companion observability blog](https://github.com/nirjhar17/llm-d-observability-openshift).
