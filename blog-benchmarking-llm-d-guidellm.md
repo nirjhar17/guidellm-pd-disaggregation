@@ -459,17 +459,19 @@ Here are the results across all profiles. TTFT is Time To First Token, how long 
 
 | Profile | Requests | RPS | TTFT Median | ITL Median | Latency Median |
 |---|---|---|---|---|---|
-| Synchronous | 22 | 0.35 | 64.2ms | 21.4ms | 2.74s |
-| Concurrent (4) | 79 | 1.30 | 54.2ms | 23.7ms | 3.02s |
-| Concurrent (16) | 259 | 4.30 | 75.0ms | 28.2ms | 3.60s |
-| Throughput (64) | 758 | 12.63 | 118.3ms | 38.2ms | 4.87s |
-| Constant (5/s) | 281 | 4.68 | 75.2ms | 28.9ms | 3.69s |
-| Poisson (5/s) | 335 | 5.58 | 85.9ms | 29.7ms | 3.79s |
-| Sweep (auto) | 23-1081 | 0.38-12.91 | 63.3-134.6ms | 20.4-57.4ms | 2.62s-23.47s |
+| Synchronous | 22 | 0.35 | 96.6ms | 20.4ms | 2.81s |
+| Concurrent (4) | 78 | 1.28 | 97.6ms | 23.3ms | 2.90s |
+| Concurrent (16) | 278 | 4.62 | 108.6ms | 26.1ms | 3.17s |
+| Throughput (64) | 738 | 12.28 | 183.3ms | 39.0ms | 4.61s |
+| Constant (5/s) | 282 | 4.70 | 102.5ms | 26.6ms | 3.17s |
+| Poisson (5/s) | 337 | 5.60 | 124.1ms | 29.3ms | 3.83s |
+| Sweep (auto) | 22-902 | 0.35-14.93 | 92.4-161.9ms | 21.7-47.5ms | 2.79s-16.14s |
 
-The seven profiles together give three numbers that matter for production. The latency floor is 54ms TTFT at Concurrent(4), the best a user will experience. The sweet spot is 7-9 RPS, the maximum throughput where TTFT stays under 100ms and the system feels responsive. The ceiling is 12.63 RPS in throughput mode, where TTFT and ITL both double compared to idle.
+The baseline TTFT with EPP active is 92-97ms at low load, compared to 54-64ms in our earlier run when EPP was not active. The difference is the EPP scoring overhead — every request now goes through the ext_proc call where the EPP evaluates all pods on queue depth and prefix cache hits before returning a routing decision. This adds ~30-40ms per request at idle.
 
-For capacity planning, use the Poisson results, not Constant. At the same 5 RPS target, Poisson showed 14% worse TTFT (85.9ms vs 75.2ms) because real traffic arrives in bursts that create momentary queue spikes. If this model serves real users, plan for 7 RPS per set of 4 pods with headroom for bursts.
+The sweet spot is 5-8 RPS, where TTFT stays under 130ms and the system feels responsive. The ceiling is 12.28 RPS in throughput mode. Beyond that, TTFT and ITL both climb sharply.
+
+For capacity planning, use the Poisson results, not Constant. At the same 5 RPS target, Poisson showed 21% worse TTFT (124.1ms vs 102.5ms) because real traffic arrives in bursts that create momentary queue spikes. If this model serves real users, plan for 6 RPS per set of 4 pods with headroom for bursts.
 
 ## Verifying EPP Routing
 
@@ -524,21 +526,19 @@ GuideLLM generates four output formats: HTML for visual charts, JSON for the ful
 
 Before enabling P/D disaggregation, we ran the same GuideLLM sweep benchmark against a standard KServe deployment of the same Qwen3-0.6B model on the same hardware. That benchmark targeted the vLLM workload service directly with no EPP routing and no prefill/decode split. The full walkthrough of that benchmark is in our earlier blog: [Exploring GuideLLM: Benchmarking a Live LLM on OpenShift](https://medium.com/@jajodia.nirjhar/exploring-guidellm-benchmarking-a-live-llm-on-openshift-ccc2d0841794).
 
-Here is what changed when we enabled P/D disaggregation.
+Here is what changed when we enabled P/D disaggregation with the EPP fully operational.
 
-Maximum throughput went from 8.53 RPS to 18.0 RPS. That is a 2.1x improvement. The standard deployment hit its ceiling with a single vLLM pod handling both prefill and decode on one GPU. With P/D, the work is split across 4 pods (2 prefill + 2 decode) on 2 GPUs. Note: during these benchmarks, the EPP was not active (see "Fixing EPP Intelligent Routing" below), so this improvement came entirely from having more pods and GPUs, not from intelligent scoring.
+Maximum throughput went from 8.53 RPS (single pod) to 14.93 RPS (sweep ceiling with P/D + EPP). That is a 1.75x improvement. The standard deployment hit its ceiling with a single vLLM pod handling both prefill and decode on one GPU. With P/D, the work is split across 4 pods (2 prefill + 2 decode) on 2 GPUs, and the EPP routes each request to the pod with the shortest queue and warmest prefix cache.
 
-The saturation point shifted from 5-6 RPS to 7-9 RPS. In the standard deployment, the sweep graph showed latency exploding around 5-6 RPS, the "knee" where user experience degrades. With P/D disaggregation, that knee moved to 7-9 RPS. The "green zone" where latency stays flat and predictable is significantly wider.
+The saturation point shifted from 5-6 RPS to 7-8 RPS. In the standard deployment, latency exploded around 5-6 RPS. With P/D disaggregation and EPP routing, that knee moved to 7-8 RPS. The "green zone" where latency stays flat and predictable is significantly wider.
 
-Baseline TTFT is higher with P/D: 63ms vs 32ms at low load. This is the routing overhead from the extra network hops through the Envoy Gateway. At idle, the extra hop adds about 30ms. But this trade-off pays for itself under load because the standard deployment was already at degraded TTFT by the time it hit 6 RPS, while the P/D setup maintains sub-100ms TTFT all the way to 9 RPS.
+Baseline TTFT is higher with P/D + EPP: 93-97ms vs 32ms at low load. The overhead comes from two things: the extra network hop through the Envoy Gateway (~30ms), plus the EPP scoring call where it evaluates all pods via ext_proc (~30-40ms). This trade-off pays for itself under load because the standard deployment was already at degraded TTFT by the time it hit 6 RPS, while the P/D setup maintains stable TTFT up to 8 RPS.
 
 Inter-Token Latency was nearly identical in both setups: 19.74ms without P/D vs 20.4ms with P/D at low load. This makes sense because ITL is determined by the vLLM engine and GPU speed during the decode phase, not the routing layer. The EPP only routes the initial request. Once token generation starts, it streams directly from the decode pod to the client.
 
-Request latency at low load: 2.54s without P/D vs 2.74s with P/D. The 200ms difference comes from the same routing overhead that affects TTFT. At high load, this gap reverses because the P/D setup handles queuing and contention much better with 4 pods instead of 1.
+Request latency at low load: 2.54s without P/D vs 2.81s with P/D. The 270ms difference comes from the routing overhead (Gateway + EPP ext_proc). At high load, this gap reverses because the P/D setup handles queuing and contention much better with 4 pods instead of 1.
 
-One important caveat with these GuideLLM results. GuideLLM generates random synthetic prompts for every request. No two prompts share a prefix. This means the prefix cache would never be utilized even if it were enabled. We checked the vLLM pod logs during the benchmark and confirmed prefix cache hit rate was 0% across all 4 pods. The throughput improvement came entirely from distributing work across 4 pods on 2 GPUs. As we later discovered, the EPP scoring plugins were not active during these runs.
-
-KV cache utilization peaked at 31% during the heaviest sweep loads, well within our 40% VRAM budget. No pod hit the ceiling, no requests waited in queue, and no OOMs occurred. The headroom means this setup can handle burst traffic beyond the sustained maximum.
+One important caveat with GuideLLM results: GuideLLM generates random synthetic prompts for every request. No two prompts share a prefix. This means the prefix-cache-scorer (our highest weighted plugin at 3.0) has nothing to score against. The EPP falls back to queue-scorer for routing decisions. To exercise the prefix cache, we used inference-perf with shared-prefix workloads (see below).
 
 ## Proving Prefix Cache with Shared Prompts
 
