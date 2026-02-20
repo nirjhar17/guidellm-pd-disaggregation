@@ -1,0 +1,40 @@
+# EnvoyFilter to connect the Envoy Gateway to the EPP via ext_proc.
+# REQUIRED on RHOAI 3.0-3.2 where the auto-generated ext_proc filter
+# has cluster_name: "dummy" and request_header_mode: SKIP.
+#
+# Update cluster_name if your model name differs from qwen3-0-6b.
+# Format: outbound|9002||<epp-service-name>.<namespace>.svc.cluster.local
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: fix-extproc-body-mode
+  namespace: openshift-ingress
+spec:
+  workloadSelector:
+    labels:
+      gateway.networking.k8s.io/gateway-name: openshift-ai-inference
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.ext_proc
+    patch:
+      operation: MERGE
+      value:
+        typed_config:
+          '@type': type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor
+          grpc_service:
+            envoy_grpc:
+              cluster_name: outbound|9002||qwen3-0-6b-epp-service.my-first-model.svc.cluster.local
+            timeout: 30s
+          failure_mode_allow: true
+          processing_mode:
+            request_header_mode: SEND
+            response_header_mode: SEND
+            request_body_mode: STREAMED
+          message_timeout: 30s

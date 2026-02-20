@@ -33,6 +33,8 @@ spec:
           --enforce-eager
           --enable-auto-tool-choice
           --tool-call-parser hermes
+          --enable-prefix-caching
+          --block-size=16
       - name: VLLM_CHAT_TEMPLATE_ENABLE_THINKING
         value: "false"
       resources:
@@ -43,7 +45,7 @@ spec:
         limits:
           cpu: "2"
           memory: 6Gi
-          nvidia.com/gpu: "1"       # MUST equal request
+          nvidia.com/gpu: "1"
     nodeSelector:
       nvidia.com/gpu.present: "true"
     tolerations:
@@ -72,6 +74,8 @@ spec:
             --enforce-eager
             --enable-auto-tool-choice
             --tool-call-parser hermes
+            --enable-prefix-caching
+            --block-size=16
         - name: VLLM_CHAT_TEMPLATE_ENABLE_THINKING
           value: "false"
         resources:
@@ -82,7 +86,7 @@ spec:
           limits:
             cpu: "2"
             memory: 6Gi
-            nvidia.com/gpu: "1"     # MUST equal request
+            nvidia.com/gpu: "1"
       nodeSelector:
         nvidia.com/gpu.present: "true"
       tolerations:
@@ -90,7 +94,7 @@ spec:
         operator: Exists
         effect: NoSchedule
 
-  # ── Router / Scheduler ──
+  # ── Router / Scheduler (EPP) ──
   router:
     gateway: {}
     route: {}
@@ -105,23 +109,40 @@ spec:
           - "{{ ChildName .ObjectMeta.Name `-inference-pool` }}"
           - --pool-namespace
           - "{{ .ObjectMeta.Namespace }}"
+          - --secure-serving
+          - --cert-path
+          - /var/run/kserve/tls
           - --config-text
           - |
             apiVersion: inference.networking.x-k8s.io/v1alpha1
             kind: EndpointPickerConfig
             plugins:
+            - type: prefill-header-handler
+            - type: prefill-filter
+            - type: decode-filter
+            - type: max-score-picker
             - type: queue-scorer
-            - type: kv-cache-utilization-scorer
             - type: prefix-cache-scorer
+            - type: pd-profile-handler
+              parameters:
+                threshold: 0
             schedulingProfiles:
-            - name: default
+            - name: prefill
               plugins:
+              - pluginRef: prefill-filter
               - pluginRef: queue-scorer
-                weight: 2
-              - pluginRef: kv-cache-utilization-scorer
-                weight: 2
+                weight: 1.0
               - pluginRef: prefix-cache-scorer
-                weight: 3
+                weight: 3.0
+              - pluginRef: max-score-picker
+            - name: decode
+              plugins:
+              - pluginRef: decode-filter
+              - pluginRef: queue-scorer
+                weight: 1.0
+              - pluginRef: prefix-cache-scorer
+                weight: 3.0
+              - pluginRef: max-score-picker
           env:
           - name: TOKENIZER_CACHE_DIR
             value: /tmp/tokenizer-cache
