@@ -471,7 +471,7 @@ The baseline TTFT with EPP active is 92-97ms at low load, compared to 54-64ms in
 
 The sweet spot is 5-8 RPS, where TTFT stays under 130ms and the system feels responsive. The ceiling is 12.28 RPS in throughput mode. Beyond that, TTFT and ITL both climb sharply.
 
-For capacity planning, use the Poisson results, not Constant. At the same 5 RPS target, Poisson showed 21% worse TTFT (124.1ms vs 102.5ms) because real traffic arrives in bursts that create momentary queue spikes. If this model serves real users, plan for 6 RPS per set of 4 pods with headroom for bursts.
+For capacity planning, use the Poisson results, not Constant. At the same 5 RPS target, Poisson showed 21% worse TTFT (124.1ms vs 102.5ms) because real traffic arrives in bursts that create momentary queue spikes. If this model serves real users, plan for 8 RPS per set of 4 pods with headroom for bursts.
 
 ## Verifying EPP Routing
 
@@ -530,11 +530,11 @@ Here is what changed when we enabled P/D disaggregation with the EPP fully opera
 
 Maximum throughput went from 8.53 RPS (single pod) to 14.93 RPS (sweep ceiling with P/D + EPP). That is a 1.75x improvement. The standard deployment hit its ceiling with a single vLLM pod handling both prefill and decode on one GPU. With P/D, the work is split across 4 pods (2 prefill + 2 decode) on 2 GPUs, and the EPP routes each request to the pod with the shortest queue and warmest prefix cache.
 
-The saturation point shifted from 5-6 RPS to 7-8 RPS. In the standard deployment, latency exploded around 5-6 RPS. With P/D disaggregation and EPP routing, that knee moved to 7-8 RPS. The "green zone" where latency stays flat and predictable is significantly wider.
+The saturation point shifted from 5-6 RPS to 9-10 RPS. In the standard deployment, latency exploded around 5-6 RPS. With P/D disaggregation and EPP routing, that knee moved to 9-10 RPS. The "green zone" where latency stays flat and predictable is significantly wider.
 
-Baseline TTFT is higher with P/D + EPP: 93-97ms vs 32ms at low load. The overhead comes from two things: the extra network hop through the Envoy Gateway (~30ms), plus the EPP scoring call where it evaluates all pods via ext_proc (~30-40ms). This trade-off pays for itself under load because the standard deployment was already at degraded TTFT by the time it hit 6 RPS, while the P/D setup maintains stable TTFT up to 8 RPS.
+Baseline TTFT is higher with P/D + EPP: 93-97ms vs 32ms at low load. The overhead comes from two things: the extra network hop through the Envoy Gateway (~30ms), plus the EPP scoring call where it evaluates all pods via ext_proc (~30-40ms). This trade-off pays for itself under load because the standard deployment was already at degraded TTFT by the time it hit 6 RPS, while the P/D setup maintains stable TTFT up to 10 RPS.
 
-Inter-Token Latency was nearly identical in both setups: 19.74ms without P/D vs 20.4ms with P/D at low load. This makes sense because ITL is determined by the vLLM engine and GPU speed during the decode phase, not the routing layer. The EPP only routes the initial request. Once token generation starts, it streams directly from the decode pod to the client.
+Inter-Token Latency was nearly identical in both setups: 19.74ms without P/D vs 21.2ms with P/D at low load. This makes sense because ITL is determined by the vLLM engine and GPU speed during the decode phase, not the routing layer. The EPP only routes the initial request. Once token generation starts, it streams directly from the decode pod to the client.
 
 Request latency at low load: 2.54s without P/D vs 2.81s with P/D. The 270ms difference comes from the routing overhead (Gateway + EPP ext_proc). At high load, this gap reverses because the P/D setup handles queuing and contention much better with 4 pods instead of 1.
 
