@@ -222,7 +222,26 @@ The full manifest with all fields (nodeSelector, tolerations, resource limits) i
 
 ## The EnvoyFilter for EPP Routing
 
-The LLMInferenceService creates everything needed for intelligent routing — except one thing. On RHOAI 3.0–3.2 (which uses Istio 1.26.x), the Envoy Gateway's ext_proc filter is auto-configured with a placeholder:
+The LLMInferenceService creates everything needed for intelligent routing — except one thing. On RHOAI 3.0–3.2 (which uses Istio 1.26.x), the Envoy Gateway's ext_proc filter is auto-configured with a placeholder that disables it.
+
+We discovered this by dumping the live Envoy configuration from inside the Gateway pod:
+
+```bash
+ENVOY_POD=$(oc get pods -n openshift-ingress \
+  -l gateway.networking.k8s.io/gateway-name=openshift-ai-inference \
+  -o jsonpath='{.items[0].metadata.name}')
+
+oc exec -n openshift-ingress $ENVOY_POD -c istio-proxy -- \
+  pilot-agent request GET config_dump | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for config in data.get('configs', []):
+    for resource in config.get('dynamic_listeners', []):
+        print(json.dumps(resource, indent=2))
+" | grep -A5 ext_proc
+```
+
+Deep inside the output, the base ext_proc HTTP filter had:
 
 ```
 cluster_name: "dummy"
