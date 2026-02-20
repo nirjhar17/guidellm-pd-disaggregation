@@ -471,26 +471,11 @@ The seven profiles together give three numbers that matter for production. The l
 
 For capacity planning, use the Poisson results, not Constant. At the same 5 RPS target, Poisson showed 14% worse TTFT (85.9ms vs 75.2ms) because real traffic arrives in bursts that create momentary queue spikes. If this model serves real users, plan for 7 RPS per set of 4 pods with headroom for bursts.
 
-## Verifying Request Distribution
+## Verifying EPP Routing
 
-Running benchmarks is one thing. Verifying that requests reach all pods is another. We used three methods.
+After applying the LLMInferenceService and EnvoyFilter, the next step is verifying that the EPP is actually in the loop and routing requests intelligently. There are three commands that tell you everything you need to know.
 
-The first method was checking vLLM pod request counts. During a running benchmark, we checked access logs on each pod:
-
-```
-for pod in $(oc get pods -n my-first-model -l app=isvc.qwen3-0-6b \
-  -o name); do
-  echo "=== $pod ==="
-  oc logs $pod -n my-first-model -c main --since=30s | \
-    grep "POST /v1/chat/completions" | wc -l
-done
-```
-
-All 4 pods (2 prefill + 2 decode) received roughly equal request counts, about 350 each across the full benchmark session. At the time, we interpreted this as the EPP's queue-scorer balancing load evenly. We later discovered (see "Fixing EPP Intelligent Routing" below) that the EPP was not active at all — this equal distribution was Envoy's default round-robin.
-
-The second method was querying vLLM metrics directly. Each pod exposes Prometheus metrics at port 8000. We used oc exec to curl localhost:8000/metrics and grep for running_requests, waiting_requests, and gpu_cache_usage. This showed request distribution, queue depths, and KV cache usage per pod in real time.
-
-The third method was checking Envoy proxy metrics for the EPP cluster. This turned out to be the most revealing diagnostic:
+**1. Check Envoy-to-EPP connectivity:**
 
 ```bash
 ENVOY_POD=$(oc get pods -n openshift-ingress \
@@ -501,7 +486,35 @@ oc exec -n openshift-ingress $ENVOY_POD -c istio-proxy -- \
   pilot-agent request GET /clusters | grep "epp-service"
 ```
 
-When we ran this, `cx_total` was 0, meaning Envoy had never even attempted to connect to the EPP. Every request was going through round-robin, not intelligent scoring.
+Look for `cx_total` (total connections attempted) and `cx_connect_fail` (failed connections). If `cx_total` is 0, the EnvoyFilter is not applied and Envoy is still using the dummy cluster. If `cx_connect_fail` equals `cx_total`, the TLS handshake is failing (missing `--cert-path` on the EPP).
+
+**2. Check per-pod request distribution:**
+
+```bash
+for pod in $(oc get pods -n my-first-model \
+  -l serving.kserve.io/inferenceservice=qwen3-0-6b \
+  -o name); do
+  echo "=== $pod ==="
+  oc exec -n my-first-model $pod -- \
+    curl -s localhost:8000/metrics | grep "vllm:request_success_total"
+done
+```
+
+With EPP working and shared-prefix workloads, you should see unequal distribution. The EPP's `prefix-cache-scorer` creates session affinity — requests with the same prefix get routed to the pod that already has the cached KV entries. In our tests with 100 shared-prefix requests, one decode pod received all 100 requests while the other received 0.
+
+**3. Check prefix cache hit rate:**
+
+```bash
+for pod in $(oc get pods -n my-first-model \
+  -l serving.kserve.io/inferenceservice=qwen3-0-6b \
+  -o name); do
+  echo "=== $pod ==="
+  oc exec -n my-first-model $pod -- \
+    curl -s localhost:8000/metrics | grep "prefix_cache"
+done
+```
+
+After sending shared-prefix requests, `vllm:prefix_cache_hits_total` should be non-zero. We measured 86% hit rate with the EPP active, compared to 65% with round-robin (where each pod builds its own partial cache independently).
 
 ## GuideLLM Output Formats
 
