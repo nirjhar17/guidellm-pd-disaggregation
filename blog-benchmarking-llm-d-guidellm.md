@@ -469,7 +469,7 @@ Here are the results across all profiles. TTFT is Time To First Token, how long 
 
 The baseline TTFT with EPP active is 92-97ms at low load, compared to 54-64ms in our earlier run when EPP was not active. The difference is the EPP scoring overhead — every request now goes through the ext_proc call where the EPP evaluates all pods on queue depth and prefix cache hits before returning a routing decision. This adds ~30-40ms per request at idle.
 
-The sweet spot is 5-8 RPS, where TTFT stays under 130ms and the system feels responsive. The ceiling is 12.28 RPS in throughput mode. Beyond that, TTFT and ITL both climb sharply.
+The sweet spot is up to 13 RPS, where TTFT stays under 165ms and the system feels responsive. The ceiling is 14.93 RPS in the sweep throughput test. Beyond that, TTFT collapses to 18,000ms as the system saturates.
 
 For capacity planning, use the Poisson results, not Constant. At the same 5 RPS target, Poisson showed 21% worse TTFT (124.1ms vs 102.5ms) because real traffic arrives in bursts that create momentary queue spikes. If this model serves real users, plan for 10-11 RPS per set of 4 pods with headroom for bursts.
 
