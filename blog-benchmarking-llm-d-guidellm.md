@@ -21,7 +21,7 @@ We have this setup running on our ROSA cluster, and now the question is: how doe
 
 We're running on ROSA HCP 4.20.6 (AWS ap-southeast-1) with OpenShift AI. The model is Qwen/Qwen3-0.6B served by vLLM, with llm-d managing the inference stack. We have 2 GPU nodes, each with an NVIDIA Tesla T4 (16 GiB VRAM).
 
-The deployment uses Prefill/Decode (P/D) disaggregation. Here's the request flow:
+The deployment uses Prefill/Decode disaggregation. Here's the request flow:
 
 ```
                      User Request
@@ -32,28 +32,21 @@ The deployment uses Prefill/Decode (P/D) disaggregation. Here's the request flow
                   │  /Scheduler  │
                   └──────┬───────┘
                          |
-            Phase 1: Prefill
               ┌──────────┴──────────┐
               v                     v
     ┌──────────────┐      ┌──────────────┐
     │  PREFILL Pod │      │  PREFILL Pod │
     │  (GPU node 1)│      │  (GPU node 1)│
-    └──────────────┘      └──────────────┘
-
-            Phase 2: Decode
-              ┌──────────┴──────────┐
-              v                     v
+    └──────┬───────┘      └──────┬───────┘
+           |  KV cache transfer  |
+           v                     v
     ┌──────────────┐      ┌──────────────┐
     │  DECODE Pod  │      │  DECODE Pod  │
     │  (GPU node 2)│      │  (GPU node 2)│
     └──────────────┘      └──────────────┘
 ```
 
-**Important: On our T4 GPUs, there is no KV cache transfer between pods.** KV cache transfer requires high-speed interconnects like NVLink (H100) or a TCP-based transfer layer, which we do not have on Tesla T4s. Instead, each pod (whether labeled prefill or decode) runs the full inference independently. The P/D labels tell the EPP which scheduling profile to use — `prefill-filter` routes phase 1 to prefill pods, `decode-filter` routes phase 2 to decode pods — but each pod computes its own KV cache locally.
-
-What makes this setup valuable is **prefix caching at the EPP level**. Each vLLM pod maintains its own local prefix cache (`--enable-prefix-caching`). When a request arrives with a prompt prefix that a pod has seen before, vLLM reuses the cached KV entries instead of recomputing them. The EPP's `prefix-cache-scorer` plugin knows which pods have which prefixes cached (via vLLM metrics), and routes same-prefix requests to the same pod. This creates session affinity — the pod with the warmest cache keeps getting the matching requests, maximizing hit rate.
-
-The EPP scores every pod on queue depth (`queue-scorer`) and prefix cache state (`prefix-cache-scorer`), then picks the best one for each request.
+The prefill pods receive the full prompt and process all tokens in parallel, building the KV cache. That cache is transferred to the decode pods, which generate output tokens one at a time. The EPP (Endpoint Picker) router scores every pod on queue depth and prefix cache hits, then picks the best one for each request.
 
 ## How a Request Travels Through the Stack
 
