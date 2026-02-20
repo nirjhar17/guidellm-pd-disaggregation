@@ -457,15 +457,15 @@ Sweep automatically runs a synchronous baseline, a throughput ceiling test, then
 
 Here are the results across all profiles. TTFT is Time To First Token, how long until the model starts responding. ITL is Inter-Token Latency, how fast tokens stream after the first one.
 
-| Profile | Requests | RPS | TTFT Median | ITL Median | Latency Median |
-|---|---|---|---|---|---|
-| Synchronous | 22 | 0.35 | 96.6ms | 20.4ms | 2.81s |
-| Concurrent (4) | 78 | 1.28 | 97.6ms | 23.3ms | 2.90s |
-| Concurrent (16) | 278 | 4.62 | 108.6ms | 26.1ms | 3.17s |
-| Throughput (64) | 738 | 12.28 | 183.3ms | 39.0ms | 4.61s |
-| Constant (5/s) | 282 | 4.70 | 102.5ms | 26.6ms | 3.17s |
-| Poisson (5/s) | 337 | 5.60 | 124.1ms | 29.3ms | 3.83s |
-| Sweep (auto) | 22-902 | 0.35-14.93 | 92.4-161.9ms | 21.7-47.5ms | 2.79s-16.14s |
+| Profile | --profile | --rate | Requests | RPS | TTFT Median | ITL Median | Latency Median |
+|---|---|---|---|---|---|---|---|
+| Synchronous | synchronous | - | 22 | 0.35 | 96.6ms | 20.4ms | 2.81s |
+| Concurrent (4) | concurrent | 4 | 78 | 1.28 | 97.6ms | 23.3ms | 2.90s |
+| Concurrent (16) | concurrent | 16 | 278 | 4.62 | 108.6ms | 26.1ms | 3.17s |
+| Throughput (64) | throughput | 64 | 738 | 12.28 | 183.3ms | 39.0ms | 4.61s |
+| Constant (5/s) | constant | 5 | 282 | 4.70 | 102.5ms | 26.6ms | 3.17s |
+| Poisson (5/s) | poisson | 5 | 337 | 5.60 | 124.1ms | 29.3ms | 3.83s |
+| Sweep (auto) | sweep | - | 22–902 | 0.35–14.93 | 92.4–161.9ms | 21.7–47.5ms | 2.79–16.14s |
 
 The baseline TTFT with EPP active is 92-97ms at low load, compared to 54-64ms in our earlier run when EPP was not active. The difference is the EPP scoring overhead — every request now goes through the ext_proc call where the EPP evaluates all pods on queue depth and prefix cache hits before returning a routing decision. This adds ~30-40ms per request at idle.
 
