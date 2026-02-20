@@ -91,15 +91,7 @@ The **EPP pod** (in `my-first-model` namespace) receives the ext_proc call and s
 
 The **vLLM pod** (in `my-first-model` namespace) receives the actual HTTP request from Envoy and runs inference. The vLLM instance has no idea about the EPP — from its perspective, it just received a normal request from the gateway.
 
-Not all URLs go through the EPP. The HTTPRoute defines which paths trigger intelligent routing:
-
-| URL Path | Goes Through EPP? | Why |
-|----------|-------------------|-----|
-| `/my-first-model/qwen3-0-6b/v1/chat/completions` | Yes (InferencePool) | Inference request — EPP picks the best pod |
-| `/my-first-model/qwen3-0-6b/v1/completions` | Yes (InferencePool) | Inference request — EPP picks the best pod |
-| `/my-first-model/qwen3-0-6b/v1/models` | No (direct Service) | Metadata — round-robin to any pod |
-
-This matters for debugging. If `/v1/models` returns a response but `/v1/chat/completions` does not, the problem is in the EPP or ext_proc path, not in vLLM itself.
+Only inference requests (`/v1/chat/completions` and `/v1/completions`) go through the EPP for intelligent routing. Other paths like `/v1/models` bypass the EPP entirely and go directly to any vLLM pod via round-robin.
 
 ## The LLMInferenceService with P/D Disaggregation
 
