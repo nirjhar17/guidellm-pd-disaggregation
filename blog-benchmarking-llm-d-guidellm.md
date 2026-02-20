@@ -15,6 +15,8 @@ The intelligent routing comes from the EPP, the Endpoint Picker Pod. The EPP sit
 
 We have this setup running on our ROSA cluster, and now the question is: how does it actually perform under pressure? This blog walks through our benchmarking session where we used GuideLLM to run 7 different load profiles, each simulating a different type of traffic pattern, to understand how latency and throughput behave as we increase the load.
 
+> **Update (Feb 2026):** During our investigation, we discovered the EPP was not actually routing requests intelligently during the initial GuideLLM benchmarks. Four separate issues prevented EPP from functioning: a dummy ext_proc cluster in Envoy, a TLS handshake failure, an incorrect EndpointPickerConfig, and missing prefix caching flags on vLLM. The throughput gains in the GuideLLM sweep came from having 4 pods across 2 GPUs, not from intelligent scoring. After fixing all four issues, we re-ran inference-perf and achieved 86% prefix cache hit rates with true session affinity. The full debugging journey and fixes are documented in [our EPP troubleshooting guide](https://github.com/nirjhar17/llm-d-observability-openshift/blob/main/llm-d-request-flow-guide.md#4-the-bug).
+
 ## Our Setup
 
 We're running on ROSA HCP 4.20.6 (AWS ap-southeast-1) with OpenShift AI. The model is Qwen/Qwen3-0.6B served by vLLM, with llm-d managing the inference stack. We have 2 GPU nodes, each with an NVIDIA Tesla T4 (16 GiB VRAM).
@@ -285,9 +287,9 @@ The seven profiles together give three numbers that matter for production. The l
 
 For capacity planning, use the Poisson results, not Constant. At the same 5 RPS target, Poisson showed 14% worse TTFT (85.9ms vs 75.2ms) because real traffic arrives in bursts that create momentary queue spikes. If this model serves real users, plan for 7 RPS per set of 4 pods with headroom for bursts.
 
-## Proving EPP Intelligent Routing
+## Verifying Request Distribution
 
-Running benchmarks is one thing. Proving the EPP router actually distributes requests across all pods is another. We used three methods.
+Running benchmarks is one thing. Verifying that requests reach all pods is another. We used three methods.
 
 The first method was checking vLLM pod request counts. During a running benchmark, we checked access logs on each pod:
 
@@ -300,28 +302,22 @@ for pod in $(oc get pods -n my-first-model -l app=isvc.qwen3-0-6b \
 done
 ```
 
-All 4 pods (2 prefill + 2 decode) received roughly equal request counts, about 350 each across the full benchmark session.
+All 4 pods (2 prefill + 2 decode) received roughly equal request counts, about 350 each across the full benchmark session. At the time, we interpreted this as the EPP's queue-scorer balancing load evenly. We later discovered (see "Fixing EPP Intelligent Routing" below) that the EPP was not active at all — this equal distribution was Envoy's default round-robin.
 
-The second method was querying vLLM metrics directly. Each pod exposes Prometheus metrics at port 8000. We used oc exec to curl localhost:8000/metrics and grep for running_requests, waiting_requests, and gpu_cache_usage. This showed active request distribution, queue depths, and KV cache usage per pod in real time.
+The second method was querying vLLM metrics directly. Each pod exposes Prometheus metrics at port 8000. We used oc exec to curl localhost:8000/metrics and grep for running_requests, waiting_requests, and gpu_cache_usage. This showed request distribution, queue depths, and KV cache usage per pod in real time.
 
-The third method was checking EPP Prometheus metrics. The EPP exposes its own metrics at port 9090, including inference_pool_per_pod_queue_size which shows queue depth per pod.
+The third method was checking Envoy proxy metrics for the EPP cluster. This turned out to be the most revealing diagnostic:
 
-Every request follows the same path, confirmed by source IP analysis:
+```bash
+ENVOY_POD=$(oc get pods -n openshift-ingress \
+  -l gateway.networking.k8s.io/gateway-name=openshift-ai-inference \
+  -o jsonpath='{.items[0].metadata.name}')
 
+oc exec -n openshift-ingress $ENVOY_POD -c istio-proxy -- \
+  pilot-agent request GET /clusters | grep "epp-service"
 ```
-GuideLLM Job → External LB → Envoy Gateway (10.130.0.37)
-  → EPP Scheduler (10.130.0.35) → Prefill/Decode Pods
-```
 
-All vLLM pod access logs showed the same source IP (the Envoy Gateway), confirming that EPP was in the routing chain for every request.
-
-The EPP uses three scoring plugins configured in the EndpointPickerConfig:
-
-- queue-scorer (weight 2): routes to pod with shortest queue
-- kv-cache-utilization-scorer (weight 2): routes to pod with most free KV cache
-- prefix-cache-scorer (weight 3): routes to pod that already cached the prompt prefix
-
-Prefix cache gets the highest weight because a cache hit saves the entire prefill phase, a significant latency reduction.
+When we ran this, `cx_total` was 0, meaning Envoy had never even attempted to connect to the EPP. Every request was going through round-robin, not intelligent scoring.
 
 ## GuideLLM Output Formats
 
@@ -333,17 +329,17 @@ Before enabling P/D disaggregation, we ran the same GuideLLM sweep benchmark aga
 
 Here is what changed when we enabled P/D disaggregation.
 
-Maximum throughput went from 8.53 RPS to 18.0 RPS. That is a 2.1x improvement. The standard deployment hit its ceiling with a single vLLM pod handling both prefill and decode on one GPU. With P/D, the work is split across 4 pods (2 prefill + 2 decode) on 2 GPUs, and the EPP routes each request to the least loaded pod.
+Maximum throughput went from 8.53 RPS to 18.0 RPS. That is a 2.1x improvement. The standard deployment hit its ceiling with a single vLLM pod handling both prefill and decode on one GPU. With P/D, the work is split across 4 pods (2 prefill + 2 decode) on 2 GPUs. Note: during these benchmarks, the EPP was not active (see "Fixing EPP Intelligent Routing" below), so this improvement came entirely from having more pods and GPUs, not from intelligent scoring.
 
 The saturation point shifted from 5-6 RPS to 7-9 RPS. In the standard deployment, the sweep graph showed latency exploding around 5-6 RPS, the "knee" where user experience degrades. With P/D disaggregation, that knee moved to 7-9 RPS. The "green zone" where latency stays flat and predictable is significantly wider.
 
-Baseline TTFT is higher with P/D: 63ms vs 32ms at low load. This is the routing overhead. Every request now travels through the Envoy Gateway, then to the EPP which scores all available pods on queue depth, KV cache utilization, and prefix cache hits, then forwards to the selected pod. At idle, that extra hop adds about 30ms. But this trade-off pays for itself under load because the standard deployment was already at degraded TTFT by the time it hit 6 RPS, while the P/D setup maintains sub-100ms TTFT all the way to 9 RPS.
+Baseline TTFT is higher with P/D: 63ms vs 32ms at low load. This is the routing overhead from the extra network hops through the Envoy Gateway. At idle, the extra hop adds about 30ms. But this trade-off pays for itself under load because the standard deployment was already at degraded TTFT by the time it hit 6 RPS, while the P/D setup maintains sub-100ms TTFT all the way to 9 RPS.
 
 Inter-Token Latency was nearly identical in both setups: 19.74ms without P/D vs 20.4ms with P/D at low load. This makes sense because ITL is determined by the vLLM engine and GPU speed during the decode phase, not the routing layer. The EPP only routes the initial request. Once token generation starts, it streams directly from the decode pod to the client.
 
 Request latency at low load: 2.54s without P/D vs 2.74s with P/D. The 200ms difference comes from the same routing overhead that affects TTFT. At high load, this gap reverses because the P/D setup handles queuing and contention much better with 4 pods instead of 1.
 
-One important caveat with these GuideLLM results. GuideLLM generates random synthetic prompts for every request. No two prompts share a prefix. This means the prefix cache, which is the highest weighted scoring plugin in the EPP (weight 3), was never utilized. We checked the vLLM pod logs during the benchmark and confirmed prefix cache hit rate was 0% across all 4 pods. The throughput improvement we saw came entirely from load distribution across 4 pods and the queue-scorer and kv-cache-utilization-scorer plugins. The prefix-cache-scorer had nothing to work with.
+One important caveat with these GuideLLM results. GuideLLM generates random synthetic prompts for every request. No two prompts share a prefix. This means the prefix cache would never be utilized even if it were enabled. We checked the vLLM pod logs during the benchmark and confirmed prefix cache hit rate was 0% across all 4 pods. The throughput improvement came entirely from distributing work across 4 pods on 2 GPUs. As we later discovered, the EPP scoring plugins were not active during these runs.
 
 KV cache utilization peaked at 31% during the heaviest sweep loads, well within our 40% VRAM budget. No pod hit the ceiling, no requests waited in queue, and no OOMs occurred. The headroom means this setup can handle burst traffic beyond the sustained maximum.
 
@@ -433,47 +429,40 @@ The HOME and HF_HOME env vars are needed because the container's default home di
 
 Before starting the job, we recorded the prefix cache metrics on all 4 pods. They were all at zero (fresh pods, no prior requests).
 
-After the 3-stage run completed, here are the results:
+**Initial run (before EPP was fixed):** The first time we ran inference-perf, the EPP was not active due to the four bugs described in "Fixing EPP Intelligent Routing" below. Requests went through Envoy round-robin. All 4 pods received roughly equal traffic and prefix cache hits were ~65%. This was vLLM's local Automatic Prefix Caching (APC) working within each individual pod, not cross-pod routing by the EPP.
 
-- Decode pod 1: 27,581 tokens queried, 17,888 hits, 64.9% hit rate
-- Decode pod 2: 27,572 tokens queried, 18,336 hits, 66.5% hit rate
-- Prefill pod 1: 27,593 tokens queried, 17,984 hits, 65.1% hit rate
-- Prefill pod 2: 27,551 tokens queried, 18,112 hits, 65.7% hit rate
+**After fixing the EPP:** We re-ran inference-perf with 100 shared-prefix requests. This time, with EPP fully operational and the `prefix-cache-scorer` active (weight 3), the results were dramatically different:
 
-The vLLM engine logs confirmed it in real time:
+- Prefix cache hit rate: **86%** (up from 65% with round-robin)
+- Decode pod distribution: **100 requests on 1 pod, 0 on the other** (session affinity — the EPP routes requests to the pod that already has the matching prefix cached)
+- Prefill pod distribution: 46 + 54 (split across both, as expected for prefill)
 
-```
-Engine 000: Prefix cache hit rate: 64.9%   (Decode pod 1)
-Engine 000: Prefix cache hit rate: 66.5%   (Decode pod 2)
-Engine 000: Prefix cache hit rate: 65.2%   (Prefill pod 1)
-Engine 000: Prefix cache hit rate: 65.7%   (Prefill pod 2)
-```
-
-Roughly 65% of all queried tokens were served from cache. That means 65% of the prefill computation was skipped entirely. The KV entries for the shared system prompt were computed once and then reused for every subsequent request with the same prefix.
-
-The load was also evenly distributed across all 4 pods (approximately 27,550 queries each), confirming the EPP was distributing requests properly even while the prefix-cache-scorer was actively influencing routing decisions.
+The 86% hit rate is close to the theoretical maximum reported in the [Red Hat blog on KV-cache-aware routing](https://developers.redhat.com/articles/2025/10/07/master-kv-cache-aware-routing-llm-d-efficient-ai-inference) (87.4%). The session affinity on decode pods is the key: instead of spreading requests across all pods (where each pod builds its own partial cache), the EPP concentrates shared-prefix requests on the pod that already has the warm cache.
 
 KV cache usage stayed under 3% throughout the run. Because cached prefixes are reused rather than reallocated, memory consumption stays flat even as more requests arrive. This is the efficiency gain that makes prefix caching valuable at scale.
 
-The inference-perf run also gave us TTFT and ITL numbers to compare against the GuideLLM benchmarks that used random prompts.
-
-With shared prefixes (65% cache hit, ~3 RPS average across 270 requests, zero failures):
-
-- TTFT median: 67.4ms, p90: 99.3ms, p95: 122.8ms, p99: 147.6ms
-- ITL median: 25.2ms, p90: 35.2ms, p95: 38.2ms
-- Request latency median: 1.74s
-
-With random prompts from GuideLLM (0% cache hit, at similar ~2.6 RPS):
-
-- TTFT median: 73.3ms
-- ITL median: 26.9ms
-- Request latency median: ~2.9s
-
-TTFT dropped by about 8% and ITL by about 6% with prefix caching active. The improvement is modest because our shared prefix was only 128 tokens. In production RAG systems where the system prompt is 512 or 1024 tokens, the savings would be significantly larger because more of the expensive prefill computation gets skipped.
-
-The request latency difference (1.74s vs 2.9s) is partly because the inference-perf run used a shorter output length (64 tokens vs 128 tokens in the GuideLLM run), so the numbers are not directly comparable on that metric. The TTFT and ITL comparisons are valid because those measure per-token timing independent of total output length.
-
 The inference-perf config and Job manifest are in our repository at [manifests/06-inference-perf-shared-prefix-config.yml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/06-inference-perf-shared-prefix-config.yml) and [manifests/07-inference-perf-job.yaml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/07-inference-perf-job.yaml).
+
+## Fixing EPP Intelligent Routing
+
+After running the benchmarks above, we investigated why request distribution was perfectly equal across all pods. Equal distribution is what round-robin gives you, not what an intelligent scorer with prefix-cache awareness should produce. We discovered four separate issues that had to be fixed in sequence.
+
+**Bug 1: Envoy's base ext_proc filter pointed to a dummy cluster.** When KServe creates the InferencePool and HTTPRoute, Istio registers a base `ext_proc` HTTP filter in the Gateway with `cluster_name: "dummy"` and `request_header_mode: SKIP`. This disables the ext_proc processing entirely. Our initial EnvoyFilter targeted `applyTo: HTTP_ROUTE` (per-route override), but per-route overrides cannot un-SKIP a base filter. The fix was changing the EnvoyFilter to target `applyTo: HTTP_FILTER` and replacing the dummy cluster with the real EPP service. After this fix, Envoy proxy metrics showed `cx_total` going from 0 to 5.
+
+**Bug 2: TLS handshake failure between Envoy and EPP.** After Bug 1, Envoy was connecting to EPP but every connection failed (`cx_connect_fail: 5/5`). The EPP had a TLS certificate mounted at `/var/run/kserve/tls` but was not told to use it. The fix was patching the LLMInferenceService to add `--cert-path=/var/run/kserve/tls` and `--secure-serving` to the scheduler container args.
+
+**Bug 3: Wrong EndpointPickerConfig (no P/D awareness).** The default EndpointPickerConfig uses a single `default` scheduling profile that treats all pods identically. For P/D disaggregation, the EPP needs `pd-profile-handler` with separate `prefill` and `decode` profiles, plus `prefill-filter` and `decode-filter` plugins. We patched the LLMInferenceService with the correct P/D-aware config from the [official KServe P/D sample](https://github.com/red-hat-data-services/kserve/blob/main/docs/samples/llmisvc/single-node-gpu/llm-inference-service-pd-qwen2-7b-gpu.yaml).
+
+**Bug 4: Prefix caching disabled on vLLM.** Even with EPP routing correctly, prefix cache hits were 0. vLLM's Automatic Prefix Caching is off by default in the v0 engine. We added `--enable-prefix-caching --block-size=16` to `VLLM_ADDITIONAL_ARGS` for both prefill and decode pods, and added `prefix-cache-scorer` (weight 3) to both scheduling profiles.
+
+After all four fixes, re-running inference-perf showed the EPP was fully operational: 86% prefix cache hit rate, true P/D-aware routing (prefill pods handle prefill, decode pods handle decode), and session affinity (shared-prefix requests are concentrated on the pod with the warm cache).
+
+| Phase | Pod Distribution | Cache Hits | EPP Status |
+|-------|-----------------|------------|------------|
+| Before fixes | 25 / 25 / 25 / 25 | 65% (local APC only) | Dead (dummy cluster) |
+| After all fixes | Prefill 46/54, Decode 100/0 | **86%** | Full (P/D + cache-aware + session affinity) |
+
+The full debugging walkthrough with exact commands and YAML is in our [EPP troubleshooting guide](https://github.com/nirjhar17/llm-d-observability-openshift/blob/main/llm-d-request-flow-guide.md#4-the-bug).
 
 ## Observability
 
