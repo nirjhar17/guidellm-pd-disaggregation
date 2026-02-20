@@ -99,7 +99,7 @@ Not all URLs go through the EPP. The HTTPRoute defines which paths trigger intel
 | `/my-first-model/qwen3-0-6b/v1/completions` | Yes (InferencePool) | Inference request — EPP picks the best pod |
 | `/my-first-model/qwen3-0-6b/v1/models` | No (direct Service) | Metadata — round-robin to any pod |
 
-This is why `/v1/models` always works even when the EPP is broken, but `/v1/chat/completions` fails.
+This matters for debugging. If `/v1/models` returns a response but `/v1/chat/completions` does not, the problem is in the EPP or ext_proc path, not in vLLM itself.
 
 ## The LLMInferenceService with P/D Disaggregation
 
