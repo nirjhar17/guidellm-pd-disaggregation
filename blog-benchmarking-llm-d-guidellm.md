@@ -46,13 +46,66 @@ The deployment uses Prefill/Decode disaggregation. Here's the request flow:
     └──────────────┘      └──────────────┘
 ```
 
-The prefill pods receive the full prompt and process all tokens in parallel, building the KV cache. That cache is transferred to the decode pods, which generate output tokens one at a time. The EPP (Endpoint Picker) router scores every pod on queue depth, KV cache utilization, and prefix cache hits, then picks the best one for each request.
+The prefill pods receive the full prompt and process all tokens in parallel, building the KV cache. That cache is transferred to the decode pods, which generate output tokens one at a time. The EPP (Endpoint Picker) router scores every pod on queue depth and prefix cache hits, then picks the best one for each request.
+
+## How a Request Travels Through the Stack
+
+Before diving into the config, it helps to understand what happens when you send a chat completion request. There are multiple components involved, each in a different namespace, and the request passes through all of them:
+
+```
+YOU                     GATEWAY POD               EPP POD             vLLM POD
+ |                          |                        |                    |
+ |---POST /v1/chat/----->   |                        |                    |
+ |   completions            |                        |                    |
+ |   (with JSON body)       |                        |                    |
+ |                          |                        |                    |
+ |                     1. Receives your request      |                    |
+ |                     2. Matches the URL to an      |                    |
+ |                        HTTPRoute rule             |                    |
+ |                     3. Rule says: "this goes      |                    |
+ |                        to InferencePool"          |                    |
+ |                     4. Sends headers+body ------> |                    |
+ |                        to EPP via ext-proc        |                    |
+ |                                                   |                    |
+ |                                              5. EPP scores            |
+ |                                                 all vLLM pods         |
+ |                                              6. Picks the best one    |
+ |                                              7. Returns "use pod      |
+ |                     8. Receives EPP's  <------   10.128.16.25"        |
+ |                        decision                   |                    |
+ |                     9. Forwards the FULL          |                    |
+ |                        request (headers+body) -----------------------> |
+ |                                                                   10. vLLM runs
+ |                                                                       the model
+ |                                                                   11. Returns
+ |                     12. Forwards response <------------------------   tokens
+ | <---response------- back to you                                       |
+ |                          |                        |                    |
+```
+
+The **Gateway pod** (in `openshift-ingress` namespace) runs an Envoy proxy controlled by Istio's Service Mesh. When your request arrives, Envoy matches the URL path against an **HTTPRoute** (in `my-first-model` namespace) which points to an **InferencePool**. The InferencePool tells Envoy: "don't just round-robin this — send it to the EPP first for a routing decision."
+
+Envoy talks to the EPP using a mechanism called **ext_proc** (External Processing). This is a gRPC call where Envoy sends the request headers and body to the EPP, and the EPP responds with "route this to pod X." The ext_proc configuration lives inside the Envoy proxy's running config, and on RHOAI 3.0–3.2, this config needs manual fixing via an EnvoyFilter (explained below).
+
+The **EPP pod** (in `my-first-model` namespace) receives the ext_proc call and scores all available vLLM pods using its configured plugins. For P/D disaggregation, it first determines whether this is a prefill or decode phase, filters to only the relevant pods, then scores them on queue depth and prefix cache hits. It returns the IP of the best pod back to Envoy.
+
+The **vLLM pod** (in `my-first-model` namespace) receives the actual HTTP request from Envoy and runs inference. The vLLM instance has no idea about the EPP — from its perspective, it just received a normal request from the gateway.
+
+Not all URLs go through the EPP. The HTTPRoute defines which paths trigger intelligent routing:
+
+| URL Path | Goes Through EPP? | Why |
+|----------|-------------------|-----|
+| `/my-first-model/qwen3-0-6b/v1/chat/completions` | Yes (InferencePool) | Inference request — EPP picks the best pod |
+| `/my-first-model/qwen3-0-6b/v1/completions` | Yes (InferencePool) | Inference request — EPP picks the best pod |
+| `/my-first-model/qwen3-0-6b/v1/models` | No (direct Service) | Metadata — round-robin to any pod |
+
+This is why `/v1/models` always works even when the EPP is broken, but `/v1/chat/completions` fails.
 
 ## The LLMInferenceService with P/D Disaggregation
 
-The core of our deployment is a single LLMInferenceService CR that defines both the prefill and decode pods, along with the EPP scheduler. Here is the YAML we used to deploy the model with P/D disaggregation:
+The core of our deployment is a single LLMInferenceService CR that defines both the prefill and decode pods, along with the EPP scheduler. Here is the corrected YAML that produces a fully working P/D disaggregation setup with prefix caching and intelligent routing:
 
-```
+```yaml
 apiVersion: serving.kserve.io/v1alpha1
 kind: LLMInferenceService
 metadata:
@@ -77,6 +130,8 @@ spec:
           --max-num-seqs=64
           --gpu-memory-utilization=0.40
           --enforce-eager
+          --enable-prefix-caching
+          --block-size=16
       resources:
         requests:
           nvidia.com/gpu: "1"
@@ -98,8 +153,10 @@ spec:
             --max-num-seqs=64
             --gpu-memory-utilization=0.40
             --enforce-eager
+            --enable-prefix-caching
+            --block-size=16
 
-  # EPP Scheduler with scoring plugins
+  # EPP Scheduler with P/D-aware routing and prefix cache scoring
   router:
     gateway: {}
     route: {}
@@ -108,28 +165,144 @@ spec:
         containers:
         - name: main
           args:
+          - --pool-group
+          - inference.networking.x-k8s.io
+          - --pool-name
+          - "{{ ChildName .ObjectMeta.Name `-inference-pool` }}"
+          - --pool-namespace
+          - "{{ .ObjectMeta.Namespace }}"
+          - --zap-encoder
+          - json
+          - --grpc-port
+          - "9002"
+          - --grpc-health-port
+          - "9003"
+          - --secure-serving
+          - --model-server-metrics-scheme
+          - https
+          - --model-server-metrics-https-insecure-skip-verify
+          - --cert-path
+          - /var/run/kserve/tls
           - --config-text
           - |
             apiVersion: inference.networking.x-k8s.io/v1alpha1
             kind: EndpointPickerConfig
             plugins:
+            - type: prefill-header-handler
+            - type: prefill-filter
+            - type: decode-filter
+            - type: max-score-picker
             - type: queue-scorer
-            - type: kv-cache-utilization-scorer
             - type: prefix-cache-scorer
+            - type: pd-profile-handler
+              parameters:
+                threshold: 0
             schedulingProfiles:
-            - name: default
+            - name: prefill
               plugins:
+              - pluginRef: prefill-filter
               - pluginRef: queue-scorer
-                weight: 2
-              - pluginRef: kv-cache-utilization-scorer
-                weight: 2
+                weight: 1.0
               - pluginRef: prefix-cache-scorer
-                weight: 3
+                weight: 3.0
+              - pluginRef: max-score-picker
+            - name: decode
+              plugins:
+              - pluginRef: decode-filter
+              - pluginRef: queue-scorer
+                weight: 1.0
+              - pluginRef: prefix-cache-scorer
+                weight: 3.0
+              - pluginRef: max-score-picker
 ```
 
-The spec.replicas controls the decode pod count, while spec.prefill.replicas controls prefill. The router section embeds the EPP scheduler configuration with the three scoring plugins. One YAML creates the entire disaggregated inference stack.
+There are several critical differences from a default LLMInferenceService:
 
-The full manifest with all fields (nodeSelector, tolerations, resource limits, env vars) is available at [manifests/01-llminferenceservice-pd.yaml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/01-llminferenceservice-pd.yaml).
+**vLLM args** include `--enable-prefix-caching --block-size=16` on both decode and prefill pods. Without these, vLLM's Automatic Prefix Caching is disabled (it is off by default in the v0 engine), and the EPP's prefix-cache-scorer has nothing to score against.
+
+**EPP scheduler args** include `--secure-serving` and `--cert-path=/var/run/kserve/tls`. The TLS certificate is already mounted by KServe at that path, but the EPP does not use it unless told to. Without these args, the EPP presents a self-signed certificate, and Envoy rejects the TLS handshake.
+
+**EndpointPickerConfig** uses `pd-profile-handler` with separate `prefill` and `decode` scheduling profiles instead of a single `default` profile. The `prefill-filter` and `decode-filter` plugins ensure that prefill requests only go to prefill pods and decode requests only go to decode pods. The `prefix-cache-scorer` with weight 3.0 in both profiles gives strong preference to pods that already have the matching prompt prefix cached, creating session affinity for shared-prefix workloads.
+
+The `spec.replicas` controls decode pod count, `spec.prefill.replicas` controls prefill. One YAML creates the entire disaggregated inference stack — vLLM pods, EPP scheduler, InferencePool, HTTPRoute, Services, and DestinationRules.
+
+The full manifest with all fields (nodeSelector, tolerations, resource limits) is available at [manifests/01-llminferenceservice-pd.yaml](https://github.com/nirjhar17/guidellm-pd-disaggregation/blob/main/manifests/01-llminferenceservice-pd.yaml).
+
+## The EnvoyFilter for EPP Routing
+
+The LLMInferenceService creates everything needed for intelligent routing — except one thing. On RHOAI 3.0–3.2 (which uses Istio 1.26.x), the Envoy Gateway's ext_proc filter is auto-configured with a placeholder:
+
+```
+cluster_name: "dummy"
+request_header_mode: SKIP
+```
+
+This means Envoy never sends requests to the EPP. Every request bypasses intelligent routing and goes through Envoy's default round-robin. The EPP pod is running and healthy, but nobody is talking to it.
+
+To fix this, we apply an **EnvoyFilter** that patches the base ext_proc filter inside the Gateway's Envoy proxy, replacing the dummy cluster with the real EPP service:
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: fix-extproc-body-mode
+  namespace: openshift-ingress
+spec:
+  workloadSelector:
+    labels:
+      gateway.networking.k8s.io/gateway-name: openshift-ai-inference
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.ext_proc
+    patch:
+      operation: MERGE
+      value:
+        typed_config:
+          '@type': type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor
+          grpc_service:
+            envoy_grpc:
+              cluster_name: outbound|9002||qwen3-0-6b-epp-service.my-first-model.svc.cluster.local
+            timeout: 30s
+          failure_mode_allow: true
+          processing_mode:
+            request_header_mode: SEND
+            response_header_mode: SEND
+            request_body_mode: STREAMED
+          message_timeout: 30s
+```
+
+Here is what this YAML does line by line:
+
+- `workloadSelector` targets only the Envoy pods belonging to the `openshift-ai-inference` Gateway, not every Envoy in the mesh.
+- `applyTo: HTTP_FILTER` means we are patching the **base** ext_proc filter, not a per-route override. This is critical — per-route overrides (`HTTP_ROUTE`) cannot un-SKIP a base filter that is set to SKIP.
+- `operation: MERGE` means we are merging our config into the existing base filter. There is already a base ext_proc filter registered by Istio (the one with `dummy`/`SKIP`). We are overwriting the broken fields while keeping the rest.
+- `cluster_name` points to the actual EPP gRPC service: `outbound|9002||qwen3-0-6b-epp-service.my-first-model.svc.cluster.local`. This is Envoy's internal cluster name format — it resolves to the EPP service on port 9002.
+- `request_header_mode: SEND` and `response_header_mode: SEND` replace the `SKIP` default, telling Envoy to actually send request and response headers to the EPP for processing.
+- `request_body_mode: STREAMED` tells Envoy to stream the request body to the EPP. This replaced the broken `FULL_DUPLEX_STREAMED` mode in Istio 1.26.2 that was causing request bodies to disappear.
+- `failure_mode_allow: true` means if the EPP is down, requests still go through (round-robin fallback) instead of returning 500 errors.
+- `message_timeout: 30s` gives the EPP up to 30 seconds to respond before Envoy times out. The default is too short for large prompts.
+
+**Why is this manual?** This is a gap in RHOAI 3.0–3.2. When KServe creates the InferencePool and HTTPRoute, Istio registers the ext_proc filter but configures it with a placeholder dummy cluster. No operator currently patches this automatically. When RHOAI upgrades to a version where this wiring is automated, this EnvoyFilter can be removed.
+
+To verify the EnvoyFilter is working, check the Envoy proxy metrics:
+
+```bash
+ENVOY_POD=$(oc get pods -n openshift-ingress \
+  -l gateway.networking.k8s.io/gateway-name=openshift-ai-inference \
+  -o jsonpath='{.items[0].metadata.name}')
+
+oc exec -n openshift-ingress $ENVOY_POD -c istio-proxy -- \
+  pilot-agent request GET /clusters | grep "epp-service"
+```
+
+`cx_total` should be greater than 0 and `cx_connect_fail` should be 0. If `cx_total` is 0, the EnvoyFilter is not applied or is targeting the wrong filter level.
 
 ## GPU Time-Slicing for Multi-Pod Per GPU
 
